@@ -1,11 +1,16 @@
 {% extends "_base.html" %}
 {% block content %}
 
-<!-- ── BUSCA PRINCIPAL ────────────────────────────────────── -->
+<!-- ── APRESENTAÇÃO DO SITE ──────────────────────────────── -->
 <div class="search-hero">
-  <h1>Encontre os melhores feriados</h1>
-  <p>Busque por estado, cidade ou feriado para planejar suas emendas</p>
-  <input type="text" id="busca-principal" placeholder="Digite um estado, cidade ou feriado..." aria-label="Buscar feriado, estado ou cidade">
+  <h1>Feriados {{ ano }} — calendário nacional, estadual e municipal</h1>
+  <p style="max-width: 640px; margin-left: auto; margin-right: auto; margin-bottom: 0; line-height: 1.6;">
+    Aqui você encontra todos os feriados de {{ ano }} — nacionais, estaduais e
+    municipais — pra qualquer estado ou cidade do Brasil. Descubra as melhores
+    pontes e emendas do ano, use a calculadora de férias pra planejar seus dias
+    de folga, e confira a cotação do dólar antes de viajar. Use a busca no
+    topo da página ou escolha um estado abaixo pra começar.
+  </p>
 </div>
 
 <!-- ── FERRAMENTAS EM DESTAQUE: CALCULADORA DE FÉRIAS + DÓLAR ───── -->
@@ -45,13 +50,10 @@
 
 </div>
 
-<!-- ── SEÇÃO DE INFO ─────────────────────────────────────── -->
-<div class="card">
-  <h1>Feriados {{ ano }} — calendário e melhores emendas</h1>
-  <p>Escolha seu estado no menu acima para ver todos os feriados nacionais, estaduais e municipais de {{ ano }}, além das melhores oportunidades de emendas para sua cidade.</p>
-</div>
-
 <!-- ── CALENDÁRIO COMPLETO ───────────────────────────────── -->
+<div class="card">
+  <h2>Calendário completo de {{ ano }}</h2>
+</div>
 {% include "_calendario.html" %}
 
 <!-- ── SELEÇÃO DE ESTADOS ────────────────────────────────── -->
@@ -66,22 +68,4 @@
   </div>
 </div>
 
-<script>
-(function() {
-  const inputPrincipal = document.getElementById('busca-principal');
-  
-  if (inputPrincipal) {
-    inputPrincipal.addEventListener('keyup', function(e) {
-      const termo = this.value.toLowerCase().trim();
-      
-      if (e.key === 'Enter' && termo) {
-        // Busca por cidade primeiro (mais específico)
-        // Depois por estado
-        // Você pode implementar uma rota /buscar/{termo} no backend
-        window.location.href = '/buscar/?q=' + encodeURIComponent(termo);
-      }
-    });
-  }
-})();
-</script>
 {% endblock %}
