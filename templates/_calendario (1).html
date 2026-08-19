@@ -1,0 +1,42 @@
+<div class="card">
+  <h2>Calendário de Feriados {{ ano }}{% if cidade %} em {{ cidade.nome }} - {{ estado.uf }}{% elif estado %} em {{ estado.nome }}{% endif %}</h2>
+  <div class="calendario-grid">
+    {% for m in calendario %}
+    <div class="mes-card">
+      <div class="mes-titulo">{{ m.nome }} {{ ano }}</div>
+
+      <div class="dias-semana">
+        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+      </div>
+
+      {% for semana in m.semanas %}
+      <div class="grade-dias">
+        {% for dia in semana %}
+          {% if dia is none %}
+          <div class="dia vazio"></div>
+          {% elif dia.feriados %}
+          <div class="dia feriado-{{ dia.feriados[0].tipo }}" title="{{ dia.feriados | map(attribute='nome') | join(' / ') }}">{{ dia.dia }}</div>
+          {% else %}
+          <div class="dia">{{ dia.dia }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      {% if m.feriados %}
+      <div class="lista-feriados-mes">
+        {% for f in m.feriados %}
+        <div class="item">
+          <span class="dia-num">{{ f.data.day }}</span>
+          <span class="nome-feriado">{{ f.nome }}</span>
+          <span class="tag tag-{{ f.tipo }}">{{ tipo_label[f.tipo] }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="sem-feriados-mes">Sem feriados neste mês</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
