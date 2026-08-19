@@ -1,11 +1,11 @@
 {% extends "_base.html" %}
 
 {% block title %}Cotação do Dólar Hoje ({{ hoje.strftime('%d/%m/%Y') }}) — Dólar para Real{% endblock %}
-{% block description %}Cotação do dólar hoje, atualizada em tempo real: valor de compra, venda e variação do dia. Confira antes de viajar ou fazer câmbio.{% endblock %}
+{% block description %}Cotação do dólar hoje: valor atualizado do dólar (USD) em reais (BRL). Confira antes de viajar ou fazer câmbio.{% endblock %}
 {% block og_title %}Cotação do Dólar Hoje{% endblock %}
-{% block og_description %}Valor do dólar hoje em reais, atualizado em tempo real, com compra, venda e variação do dia.{% endblock %}
+{% block og_description %}Valor do dólar hoje em reais, atualizado periodicamente.{% endblock %}
 {% block twitter_title %}Cotação do Dólar Hoje{% endblock %}
-{% block twitter_description %}Valor do dólar hoje em reais, atualizado em tempo real.{% endblock %}
+{% block twitter_description %}Valor do dólar hoje em reais, atualizado periodicamente.{% endblock %}
 
 {% block structured_data %}
 <script type="application/ld+json">
@@ -33,26 +33,13 @@
   </p>
   {% else %}
 
-  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-top: 16px;">
-    <div style="background: var(--azul-claro); border-radius: 12px; padding: 18px; text-align: center;">
-      <div style="font-size: 12px; color: var(--texto-claro); font-weight: 600; text-transform: uppercase;">Compra</div>
-      <div style="font-size: 26px; font-weight: 800; color: var(--azul-escuro);">R$ {{ "%.4f"|format(cotacao.compra) }}</div>
-    </div>
-    <div style="background: var(--azul-claro); border-radius: 12px; padding: 18px; text-align: center;">
-      <div style="font-size: 12px; color: var(--texto-claro); font-weight: 600; text-transform: uppercase;">Venda</div>
-      <div style="font-size: 26px; font-weight: 800; color: var(--azul-escuro);">R$ {{ "%.4f"|format(cotacao.venda) }}</div>
-    </div>
-    <div style="background: {{ 'var(--vermelho-claro)' if cotacao.variacao_pct < 0 else '#dcfce7' }}; border-radius: 12px; padding: 18px; text-align: center;">
-      <div style="font-size: 12px; color: var(--texto-claro); font-weight: 600; text-transform: uppercase;">Variação hoje</div>
-      <div style="font-size: 26px; font-weight: 800; color: {{ 'var(--vermelho)' if cotacao.variacao_pct < 0 else '#15803d' }};">
-        {{ "%+.2f"|format(cotacao.variacao_pct) }}%
-      </div>
-    </div>
+  <div style="background: var(--azul-claro); border-radius: 12px; padding: 24px; text-align: center; margin-top: 16px;">
+    <div style="font-size: 12px; color: var(--texto-claro); font-weight: 600; text-transform: uppercase;">1 Dólar (USD) em Reais</div>
+    <div style="font-size: 40px; font-weight: 800; color: var(--azul-escuro);">R$ {{ "%.4f"|format(cotacao.valor) }}</div>
   </div>
 
   <p style="margin-top: 18px; font-size: 13px; color: var(--texto-claro);">
-    Máxima do dia: R$ {{ "%.4f"|format(cotacao.maxima) }} · Mínima do dia: R$ {{ "%.4f"|format(cotacao.minima) }}<br>
-    Atualizado em: {{ cotacao.atualizado_em }} · Fonte: AwesomeAPI
+    Atualizado em: {{ cotacao.atualizado_em }} · Fonte: ExchangeRate-API
   </p>
   {% endif %}
 </div>
