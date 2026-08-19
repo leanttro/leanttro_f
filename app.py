@@ -8,6 +8,7 @@
 #      DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS
 # ════════════════════════════════════════════════════════════
 
+import calendar as calendar_lib
 from flask import Flask, render_template, g, abort
 from datetime import date, timedelta
 import os
@@ -21,6 +22,17 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 ANO_PRINCIPAL = 2027  # ano em foco do projeto — usado como default nas páginas
+
+MESES_NOMES = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+]
+
+TIPO_LABEL = {
+    "nacional": "Nacional",
+    "estadual": "Estadual",
+    "municipal": "Municipal",
+}
 
 
 # ── Banco ─────────────────────────────────────────────────────
@@ -52,9 +64,66 @@ def query(sql, params=(), one=False):
     return cur.fetchone() if one else cur.fetchall()
 
 
+# ── Contexto global (disponível em TODOS os templates) ───────
+# Isso alimenta os dropdowns de estado/cidade no cabeçalho.
+# As rotas podem sobrescrever 'estado', 'cidade' e 'cidades'
+# passando esses nomes pro render_template — os valores daqui
+# só valem como padrão (ex.: na home, onde nada está selecionado).
+
+@app.context_processor
+def inject_globais():
+    estados = query(
+        "SELECT feriado_estado_uf AS uf, feriado_estado_nome AS nome "
+        "FROM feriado_estados ORDER BY feriado_estado_nome"
+    )
+    return dict(
+        estados_dropdown=estados,
+        tipo_label=TIPO_LABEL,
+        estado=None,
+        cidade=None,
+        cidades=None,
+    )
+
+
+# ── Calendário mensal (12 meses, com feriados marcados) ──────
+
+def gerar_calendario(ano, feriados):
+    """Recebe a lista de feriados (dicts com 'data', 'nome', 'tipo') e
+    devolve uma estrutura com os 12 meses já organizados em semanas
+    (domingo a sábado), pronta pro template desenhar a grade."""
+    feriados_por_dia = {}
+    for f in feriados:
+        feriados_por_dia.setdefault(f["data"], []).append(f)
+
+    cal = calendar_lib.Calendar(firstweekday=6)  # 6 = semana começa no domingo
+
+    meses = []
+    for mes in range(1, 13):
+        semanas = []
+        for semana in cal.monthdayscalendar(ano, mes):
+            linha = []
+            for dia in semana:
+                if dia == 0:
+                    linha.append(None)
+                else:
+                    d = date(ano, mes, dia)
+                    linha.append({"dia": dia, "feriados": feriados_por_dia.get(d, [])})
+            semanas.append(linha)
+
+        feriados_mes = sorted(
+            (f for f in feriados if f["data"].month == mes),
+            key=lambda f: f["data"],
+        )
+        meses.append({
+            "nome": MESES_NOMES[mes - 1],
+            "numero": mes,
+            "semanas": semanas,
+            "feriados": feriados_mes,
+        })
+    return meses
+
+
 # ── Calculadora de emenda ────────────────────────────────────
-# (mesma lógica de antes — só os nomes de campo dos resultados de
-# query mudaram, por causa dos aliases das colunas prefixadas)
 
 def _pontes_do_ano(feriados, ano):
     oportunidades = []
@@ -120,12 +189,31 @@ def _feriados_da_cidade(ibge_code, uf, ano):
     """, (ano, uf, ibge_code))
 
 
+def _cidades_do_estado(uf):
+    return query(
+        """SELECT feriado_municipio_ibge_code AS ibge_code, feriado_municipio_nome AS nome,
+                  feriado_municipio_slug AS slug
+           FROM feriado_municipios WHERE feriado_municipio_uf = %s ORDER BY feriado_municipio_nome""",
+        (uf,),
+    )
+
+
 # ── Rotas ─────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
     estados = query("SELECT feriado_estado_uf AS uf, feriado_estado_nome AS nome FROM feriado_estados ORDER BY feriado_estado_nome")
-    return render_template("index.html", estados=estados, ano=ANO_PRINCIPAL)
+
+    feriados_nacionais = query("""
+        SELECT feriado_nome AS nome, feriado_data AS data, feriado_tipo AS tipo
+        FROM feriado_feriados
+        WHERE feriado_ano = %s AND feriado_tipo = 'nacional'
+        ORDER BY feriado_data
+    """, (ANO_PRINCIPAL,))
+
+    calendario = gerar_calendario(ANO_PRINCIPAL, feriados_nacionais)
+
+    return render_template("index.html", estados=estados, ano=ANO_PRINCIPAL, calendario=calendario)
 
 
 @app.route("/<uf>/")
@@ -138,12 +226,8 @@ def pagina_estado(uf):
     if not estado:
         abort(404)
 
-    cidades = query(
-        """SELECT feriado_municipio_ibge_code AS ibge_code, feriado_municipio_nome AS nome,
-                  feriado_municipio_slug AS slug
-           FROM feriado_municipios WHERE feriado_municipio_uf = %s ORDER BY feriado_municipio_nome""",
-        (uf,),
-    )
+    cidades = _cidades_do_estado(uf)
+
     feriados = query("""
         SELECT feriado_nome AS nome, feriado_data AS data, feriado_tipo AS tipo,
                feriado_descricao_seo AS descricao_seo
@@ -152,16 +236,25 @@ def pagina_estado(uf):
         ORDER BY feriado_data
     """, (ANO_PRINCIPAL, uf))
     pontes = _pontes_do_ano(feriados, ANO_PRINCIPAL)
+    calendario = gerar_calendario(ANO_PRINCIPAL, feriados)
 
     return render_template(
         "estado.html", estado=estado, cidades=cidades,
         feriados=feriados, pontes=pontes, ano=ANO_PRINCIPAL,
+        calendario=calendario,
     )
 
 
 @app.route("/<uf>/<cidade_slug>/")
 def pagina_cidade(uf, cidade_slug):
     uf = uf.upper()
+    estado = query(
+        "SELECT feriado_estado_uf AS uf, feriado_estado_nome AS nome FROM feriado_estados WHERE feriado_estado_uf = %s",
+        (uf,), one=True,
+    )
+    if not estado:
+        abort(404)
+
     cidade = query(
         """SELECT feriado_municipio_ibge_code AS ibge_code, feriado_municipio_nome AS nome,
                   feriado_municipio_slug AS slug, feriado_municipio_uf AS uf
@@ -171,12 +264,16 @@ def pagina_cidade(uf, cidade_slug):
     if not cidade:
         abort(404)
 
+    cidades = _cidades_do_estado(uf)  # pro dropdown de cidade continuar funcionando aqui também
+
     feriados = _feriados_da_cidade(cidade["ibge_code"], uf, ANO_PRINCIPAL)
     pontes = _pontes_do_ano(feriados, ANO_PRINCIPAL)
+    calendario = gerar_calendario(ANO_PRINCIPAL, feriados)
 
     return render_template(
-        "cidade.html", cidade=cidade, feriados=feriados,
-        pontes=pontes, ano=ANO_PRINCIPAL,
+        "cidade.html", estado=estado, cidade=cidade, cidades=cidades,
+        feriados=feriados, pontes=pontes, ano=ANO_PRINCIPAL,
+        calendario=calendario,
     )
 
 
