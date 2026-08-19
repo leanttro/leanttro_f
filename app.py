@@ -31,6 +31,30 @@ ANO_PRINCIPAL = 2027  # ano em foco do projeto — usado como default nas págin
 # via variável de ambiente BASE_URL no .env, se precisar.
 BASE_URL = os.getenv("BASE_URL", "https://www.feriados2027.com.br").rstrip("/")
 
+
+@app.before_request
+def redirecionar_para_www():
+    """Força feriados2027.com.br -> www.feriados2027.com.br (301), pra não
+    ter conteúdo duplicado no Google.
+
+    IMPORTANTE: só redireciona se a requisição veio pelo Traefik/Dokploy
+    (tem o cabeçalho X-Forwarded-Host). Um healthcheck interno do Dokploy
+    bate direto no container, sem esse cabeçalho — passa direto, sem
+    redirect. Isso evita que o healthcheck "veja" um 301 em vez de um 200
+    e derrube o serviço achando que caiu.
+    """
+    veio_pelo_proxy = request.headers.get("X-Forwarded-Host") is not None
+    if not veio_pelo_proxy:
+        return  # provável healthcheck interno — não mexe
+
+    host = request.host
+    if host.startswith("www."):
+        return  # já está certo
+
+    novo_host = f"www.{host}"
+    nova_url = request.url.replace(host, novo_host, 1)
+    return redirect(nova_url, code=301)
+
 MESES_NOMES = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
