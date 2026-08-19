@@ -340,6 +340,100 @@
     background: linear-gradient(135deg, var(--azul-bebe-mais-forte), #90CAF9);
   }
 
+  /* ── TÍTULOS ───────────────────────────────────────── */
+  h1 {
+    color: var(--verde-escuro);
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  h2 {
+    color: var(--verde-escuro);
+    font-size: 18px;
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+
+  p {
+    color: var(--texto-claro);
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+  }
+
+  .voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+    color: var(--verde-escuro);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  .voltar:hover {
+    gap: 10px;
+    color: var(--verde-mais-escuro);
+  }
+
+  .voltar::before {
+    content: "← ";
+  }
+
+  /* ── FERIADOS ──────────────────────────────────────── */
+  .feriado-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--azul-claro);
+  }
+
+  .feriado-item:last-child {
+    border-bottom: none;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-nacional {
+    background: var(--vermelho-claro);
+    color: var(--vermelho);
+  }
+
+  .tag-estadual {
+    background: linear-gradient(135deg, rgba(27, 94, 32, 0.15), rgba(27, 94, 32, 0.1));
+    color: var(--verde-escuro);
+  }
+
+  .tag-municipal {
+    background: var(--azul-claro-tag);
+    color: var(--azul);
+  }
+
+  .tag-ponto_facultativo {
+    background: var(--roxo-claro);
+    color: var(--roxo);
+  }
+
+  .tag-comemorativa {
+    background: var(--laranja-claro);
+    color: var(--laranja);
+  }
+
   /* ── PONTE/EMENDA ──────────────────────────────────── */
   .ponte {
     border-left: 4px solid var(--verde-escuro);
@@ -602,290 +696,29 @@
   .fp-desc {
     margin: 0 0 12px;
     font-size: 13px;
+    line-height: 1.6;
     color: var(--texto-claro);
-    line-height: 1.5;
   }
 
   .fp-local {
     font-size: 12px;
-    color: var(--texto-claro);
-    margin-top: 8px;
+    color: #999;
   }
 
-  /* ── TÍTULOS ───────────────────────────────────────── */
-  h1 {
-    color: var(--verde-escuro);
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-  }
-
-  h2 {
-    color: var(--verde-escuro);
-    font-size: 18px;
-    margin-top: 0;
-    margin-bottom: 16px;
-    font-weight: 700;
-  }
-
-  p {
-    color: var(--texto-claro);
-    line-height: 1.6;
-    margin: 0 0 16px 0;
-  }
-
-  /* ── CALENDÁRIO MENSAL ───────────────────────────────── */
-  .calendario-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-  }
-
-  .mes {
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  }
-
-  .mes-titulo {
-    text-align: center;
-    color: var(--verde-escuro);
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--azul-bebe);
-  }
-
-  .calendario-semana {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-  }
-
-  .dia-semana {
-    text-align: center;
-    color: var(--texto-claro);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 0;
-    margin-bottom: 4px;
-  }
-
-  .dia {
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: default;
-    position: relative;
-  }
-
-  .dia:not(.vazio) {
-    background: #f9f9f9;
-    color: var(--texto);
-    border: 1px solid var(--cinza-borda);
-  }
-
-  .dia.feriado {
-    cursor: pointer;
-    position: relative;
-  }
-
-  .dia[aria-haspopup] {
-    cursor: pointer;
-  }
-
-  .dia[aria-haspopup]::after {
-    content: "•";
-    position: absolute;
-    bottom: 2px;
-    font-size: 10px;
-    color: var(--vermelho);
-  }
-
-  .dia.tipo-nacional {
-    background: linear-gradient(135deg, var(--vermelho-claro), #fecaca);
-    color: var(--vermelho);
-  }
-
-  .dia.tipo-estadual {
-    background: linear-gradient(135deg, rgba(32, 201, 151, 0.3), rgba(32, 201, 151, 0.15));
-    color: #0FA973;
-  }
-
-  .dia.tipo-municipal {
-    background: linear-gradient(135deg, var(--azul-claro-tag), #bfdbfe);
-    color: var(--azul);
-  }
-
-  .dia.tipo-ponto_facultativo {
-    background: linear-gradient(135deg, var(--roxo-claro), #e9d5ff);
-    color: var(--roxo);
-  }
-
-  .dia.tipo-comemorativa {
-    background: linear-gradient(135deg, var(--laranja-claro), #fdba74);
-    color: var(--laranja);
-  }
-
-  /* ── POPOVER DE FERIADO ────────────────────────────────── */
-  .feriado-popover-panel {
-    position: fixed;
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    z-index: 2000;
-    max-width: 340px;
-    border: 1px solid var(--cinza-borda);
-  }
-
-  .feriado-popover-panel[hidden] {
-    display: none;
-  }
-
-  .fp-close {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--texto-claro);
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .fp-close:hover {
-    color: var(--texto);
-  }
-
-  .fp-content {
-    padding-right: 24px;
-  }
-
-  .fp-content h3 {
-    margin: 0 0 8px 0;
-    color: var(--verde-escuro);
-    font-size: 16px;
-  }
-
-  .fp-content p {
-    margin: 0;
-    font-size: 13px;
-    color: var(--texto-claro);
-  }
-
-  /* ── FERIADO ITEM ─────────────────────────────────────── */
-  .feriado-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid var(--cinza-borda);
-    font-size: 14px;
-  }
-
-  .feriado-item:last-child {
-    border-bottom: none;
-  }
-
-  .tag {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 6px;
-  }
-
-  .tag-nacional {
-    background: var(--vermelho-claro);
-    color: var(--vermelho);
-  }
-
-  .tag-estadual {
-    background: rgba(32, 201, 151, 0.2);
-    color: #0FA973;
-  }
-
-  .tag-municipal {
-    background: var(--azul-claro-tag);
-    color: var(--azul);
-  }
-
-  .tag-ponto_facultativo {
-    background: var(--roxo-claro);
-    color: var(--roxo);
-  }
-
-  .tag-comemorativa {
-    background: var(--laranja-claro);
-    color: var(--laranja);
-  }
-
-  /* ── PONTE/EMENDA ─────────────────────────────────────── */
-  .ponte {
-    background: var(--azul-claro);
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    border-left: 4px solid var(--azul-escuro);
-  }
-
-  .ponte .destaque {
-    font-weight: 700;
-    color: var(--azul-escuro);
-    margin-bottom: 8px;
-    font-size: 14px;
-  }
-
-  .ponte p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--texto);
-  }
-
-  /* ── BOTÃO VOLTAR ─────────────────────────────────────── */
-  .voltar {
-    display: inline-block;
-    margin-bottom: 16px;
-    padding: 8px 16px;
-    background: var(--azul-bebe);
-    color: var(--azul-escuro);
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-  }
-
-  .voltar:hover {
-    background: var(--azul-bebe-mais-forte);
-    transform: translateX(-4px);
-  }
-
+  /* ── BUSCA PRINCIPAL (HOME) ────────────────────────── */
   .search-hero {
-    background: linear-gradient(90deg, #0D47A1 0%, #1565C0 100%);
-    color: white;
-    padding: 48px 32px;
+    background: linear-gradient(135deg, #0D47A1 0%, #1565C0 100%);
     border-radius: 16px;
-    margin-bottom: 32px;
+    padding: 40px 24px;
     text-align: center;
+    color: #fff;
+    margin-bottom: 32px;
+    box-shadow: 0 12px 32px rgba(13, 71, 161, 0.2);
   }
 
   .search-hero h1 {
-    color: white;
+    color: #fff;
+    margin-bottom: 8px;
     font-size: 32px;
   }
 
@@ -918,37 +751,9 @@
   }
 
   /* ── RESPONSIVO ────────────────────────────────────── */
-  @media (max-width: 1200px) {
+  @media (max-width: 1000px) {
     .calendario-grid {
       grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-  }
-
-  @media (max-width: 800px) {
-    .calendario-grid {
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    .mes-card {
-      padding: 12px;
-    }
-
-    .mes-titulo {
-      font-size: 13px;
-    }
-
-    .dias-semana {
-      font-size: 9px;
-    }
-
-    .dia {
-      font-size: 11px;
-    }
-
-    .lista-feriados-mes .item {
-      font-size: 11px;
     }
   }
 
@@ -1152,7 +957,6 @@
 
 <script>
 (function () {
-  // ── POPOVER DE FERIADO ──────────────────────────────────
   var popover = document.getElementById('feriado-popover');
   var content = popover.querySelector('.fp-content');
   var closeBtn = popover.querySelector('.fp-close');
