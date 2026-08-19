@@ -8,44 +8,39 @@
   <input type="text" id="busca-principal" placeholder="Digite um estado, cidade ou feriado..." aria-label="Buscar feriado, estado ou cidade">
 </div>
 
-<!-- ── CARDS EM DESTAQUE: CALCULADORA DE FÉRIAS + DÓLAR ───── -->
-<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 24px;">
+<!-- ── FERRAMENTAS EM DESTAQUE: CALCULADORA DE FÉRIAS + DÓLAR ───── -->
+<div class="ferramentas-destaque">
 
-  <a href="/calculadora-ferias/" style="
-      display: block;
-      text-decoration: none;
-      color: #fff;
-      background: linear-gradient(135deg, #9333ea, #6d28d9);
-      border-radius: 16px;
-      padding: 28px 24px;
-      box-shadow: 0 8px 24px rgba(109, 40, 217, 0.25);
-      transition: transform 0.2s ease;
-    ">
-    <div style="font-size: 34px; margin-bottom: 8px;">🧳</div>
-    <div style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Calculadora de Férias {{ ano }}</div>
-    <p style="margin: 0; font-size: 14px; opacity: 0.95; line-height: 1.5;">
-      Diz quantos dias de férias você tem e a gente mostra os melhores períodos pra tirar em {{ ano }},
-      emendando com feriados e fins de semana.
-    </p>
-    <div style="margin-top: 14px; font-weight: 700; font-size: 14px;">Calcular agora →</div>
+  <a href="/calculadora-ferias/" class="card-ferramenta card-ferramenta--calc">
+    <span class="cf-icone" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="7" width="16" height="13" rx="2" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M9 7V5.5C9 4.67157 9.67157 4 10.5 4H13.5C14.3284 4 15 4.67157 15 5.5V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M4 12H20" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M10.5 12V10.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M13.5 12V10.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span class="cf-corpo">
+      <span class="cf-titulo">Calculadora de Férias {{ ano }}</span>
+      <span class="cf-desc">Informe quantos dias você tem e veja os melhores períodos pra tirar, emendando com feriados e fins de semana.</span>
+      <span class="cf-cta">Calcular agora <span aria-hidden="true">→</span></span>
+    </span>
   </a>
 
-  <a href="/cotacao-dolar/" style="
-      display: block;
-      text-decoration: none;
-      color: #fff;
-      background: linear-gradient(135deg, #f97316, #c2410c);
-      border-radius: 16px;
-      padding: 28px 24px;
-      box-shadow: 0 8px 24px rgba(194, 65, 12, 0.25);
-      transition: transform 0.2s ease;
-    ">
-    <div style="font-size: 34px; margin-bottom: 8px;">💵</div>
-    <div style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Cotação do Dólar Hoje</div>
-    <p style="margin: 0; font-size: 14px; opacity: 0.95; line-height: 1.5;">
-      Vai viajar nas férias? Confira o valor do dólar hoje em tempo real antes de fazer câmbio.
-    </p>
-    <div style="margin-top: 14px; font-weight: 700; font-size: 14px;">Ver cotação →</div>
+  <a href="/cotacao-dolar/" class="card-ferramenta card-ferramenta--dolar">
+    <span class="cf-icone" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M12 7.5V16.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M14.5 9.5C14.5 8.67157 13.3807 8 12 8C10.6193 8 9.5 8.67157 9.5 9.5C9.5 10.3284 10.6193 11 12 11C13.3807 11 14.5 11.6716 14.5 12.5C14.5 13.3284 13.3807 14 12 14C10.6193 14 9.5 13.3284 9.5 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span class="cf-corpo">
+      <span class="cf-titulo">Cotação do Dólar Hoje</span>
+      <span class="cf-desc">Vai viajar nas férias? Confira o valor do dólar em tempo real antes de fazer câmbio.</span>
+      <span class="cf-cta">Ver cotação <span aria-hidden="true">→</span></span>
+    </span>
   </a>
 
 </div>
