@@ -115,9 +115,10 @@
     flex-direction: row;
     align-items: center;
     gap: 12px;
-    background: rgba(255,255,255,0.08);
-    padding: 4px 20px;
+    background: rgba(255,255,255,0.9);
+    padding: 6px 20px;
     border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
   
   .marca img {
@@ -127,7 +128,7 @@
   }
   
   .marca a {
-    color: #fff;
+    color: var(--azul-escuro);
     text-decoration: none;
     display: flex;
     flex-direction: column;
@@ -146,9 +147,19 @@
   
   .marca p {
     margin: 0;
-    font-size: 18px;
-    color: rgba(255,255,255,0.95);
+    font-size: 16px;
+    color: var(--azul-escuro);
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+
+  .marca .marca-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--texto-claro);
     font-weight: 500;
+    letter-spacing: 0;
   }
 
   /* ── Controles no header ─────────────────────────────── */
@@ -417,66 +428,134 @@
     font-size: 15px;
   }
 
-  .calendario-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-
-  .calendario-table th {
-    background: var(--azul-claro);
-    color: var(--verde-escuro);
-    padding: 8px 2px;
+  .dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    font-size: 10px;
+    color: #999;
     text-align: center;
+    margin-bottom: 6px;
     font-weight: 700;
-    border: none;
+    text-transform: uppercase;
   }
 
-  .calendario-table td {
-    text-align: center;
-    padding: 6px 2px;
-    border: none;
-    height: 28px;
+  .grade-dias {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+
+  .dia-cell {
+    display: contents;
   }
 
   .dia {
+    aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 28px;
-    border-radius: 6px;
-    cursor: default;
-    color: var(--texto);
-    font-weight: 500;
-    transition: all 0.2s ease;
-  }
-
-  .dia:not(.outro-mes):not(.vazio) {
-    background: transparent;
-    color: var(--texto);
-  }
-
-  .dia.outro-mes {
-    color: #ddd;
-  }
-
-  .dia.feriado-item {
-    background: linear-gradient(135deg, rgba(13, 71, 161, 0.15), rgba(13, 71, 161, 0.08));
-    color: var(--azul-medio);
+    font-size: 12px;
+    border-radius: 10px;
+    color: #333;
     font-weight: 600;
   }
 
-  .dia[aria-haspopup="true"] {
-    cursor: pointer;
-    background: linear-gradient(135deg, rgba(27, 94, 32, 0.2), rgba(27, 94, 32, 0.1));
-    color: var(--verde-escuro);
-    font-weight: 700;
-    border: 1px solid rgba(27, 94, 32, 0.3);
+  .dia.vazio {
+    visibility: hidden;
   }
 
-  .dia[aria-haspopup="true"]:hover {
-    background: linear-gradient(135deg, rgba(27, 94, 32, 0.35), rgba(27, 94, 32, 0.2));
-    transform: scale(1.05);
+  .dia.feriado-nacional {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: var(--vermelho);
+    font-weight: 800;
+  }
+
+  .dia.feriado-estadual {
+    background: linear-gradient(135deg, rgba(27, 94, 32, 0.3), rgba(27, 94, 32, 0.15));
+    color: var(--verde-escuro);
+    font-weight: 800;
+  }
+
+  .dia.feriado-municipal {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: var(--azul);
+    font-weight: 800;
+  }
+
+  .dia.feriado-ponto_facultativo {
+    background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+    color: var(--roxo);
+    font-weight: 800;
+  }
+
+  .dia.feriado-comemorativa {
+    background: linear-gradient(135deg, #fed7aa, #fdba74);
+    color: var(--laranja);
+    font-weight: 800;
+  }
+
+  button.dia {
+    width: 100%;
+    border: 0;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s ease;
+  }
+
+  button.dia:hover,
+  button.dia:focus-visible,
+  button.dia[aria-expanded="true"] {
+    filter: brightness(0.95);
+    transform: scale(1.08);
+    outline: 2px solid rgba(27, 94, 32, 0.4);
+    outline-offset: -1px;
+  }
+
+  .lista-feriados-mes {
+    margin-top: 12px;
+    border-top: 1px dashed var(--azul-bebe);
+    padding-top: 10px;
+  }
+
+  .lista-feriados-mes .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .lista-feriados-mes .dia-num {
+    font-weight: 800;
+    color: var(--verde-escuro);
+    width: 20px;
+    flex-shrink: 0;
+    background: rgba(27, 94, 32, 0.1);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    font-size: 11px;
+  }
+
+  .lista-feriados-mes .nome-feriado {
+    flex: 1;
+    color: var(--texto);
+  }
+
+  .lista-feriados-mes .tag {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
+  .sem-feriados-mes {
+    font-size: 12px;
+    color: #bbb;
+    margin-top: 10px;
+    font-style: italic;
   }
 
   .feriado-popover-panel {
@@ -720,23 +799,8 @@
       font-size: 16px;
     }
 
-    .calendario-table {
-      font-size: 11px;
-    }
-
-    .calendario-table th {
-      padding: 6px 1px;
-      font-size: 10px;
-    }
-
-    .calendario-table td {
-      padding: 5px 1px;
-      height: 26px;
-    }
-
     .dia {
-      height: 26px;
-      font-size: 12px;
+      font-size: 11px;
     }
   }
 
@@ -781,24 +845,9 @@
       margin-bottom: 16px;
     }
 
-    .calendario-table {
-      font-size: 10px;
-    }
-
-    .calendario-table th {
-      padding: 4px 0px;
-      font-size: 9px;
-    }
-
-    .calendario-table td {
-      padding: 4px 0px;
-      height: 24px;
-    }
-
     .dia {
-      height: 24px;
-      font-size: 11px;
-      border-radius: 4px;
+      font-size: 10px;
+      border-radius: 6px;
     }
 
     h1 {
@@ -819,7 +868,7 @@
       <img src="https://i.imgur.com/dlxIOwA.png" alt="Logo Feriados">
       <a href="/">
         <h1>Feriados {{ ano }}</h1>
-        <p>Calendário brasileiro completo</p>
+        <p>Feriados, pontes e emendas<span class="marca-sub">Calendário nacional, estadual e municipal</span></p>
       </a>
     </div>
     <div class="controles">
