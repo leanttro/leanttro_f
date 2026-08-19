@@ -9,7 +9,7 @@
 # ════════════════════════════════════════════════════════════
 
 import calendar as calendar_lib
-from flask import Flask, render_template, g, abort
+from flask import Flask, render_template, g, abort, request, redirect, jsonify
 from datetime import date, timedelta
 import os
 import psycopg2
@@ -202,6 +202,50 @@ def _cidades_do_estado(uf):
     )
 
 
+# ── Busca (estados, cidades e feriados) ───────────────────────
+# Usada pela rota /buscar/ (página de resultados) e pelo
+# autocomplete do header (/api/autocomplete/).
+
+def _buscar_tudo(termo, limite=8):
+    """Procura o termo em estados, cidades e feriados do ano principal.
+    Usa ILIKE (case-insensitive) — simples e não depende de nenhuma
+    extensão especial do Postgres."""
+    termo = (termo or "").strip()
+    if not termo:
+        return {"estados": [], "cidades": [], "feriados": []}
+
+    padrao = f"%{termo}%"
+
+    estados = query("""
+        SELECT feriado_estado_uf AS uf, feriado_estado_nome AS nome
+        FROM feriado_estados
+        WHERE feriado_estado_nome ILIKE %s OR feriado_estado_uf ILIKE %s
+        ORDER BY feriado_estado_nome
+        LIMIT %s
+    """, (padrao, padrao, limite))
+
+    cidades = query("""
+        SELECT feriado_municipio_ibge_code AS ibge_code, feriado_municipio_nome AS nome,
+               feriado_municipio_slug AS slug, feriado_municipio_uf AS uf
+        FROM feriado_municipios
+        WHERE feriado_municipio_nome ILIKE %s
+        ORDER BY feriado_municipio_nome
+        LIMIT %s
+    """, (padrao, limite))
+
+    feriados = query("""
+        SELECT feriado_nome AS nome, feriado_data AS data, feriado_tipo AS tipo,
+               feriado_uf AS uf, feriado_ibge_code AS ibge_code,
+               feriado_descricao_seo AS descricao_seo
+        FROM feriado_feriados
+        WHERE feriado_ano = %s AND feriado_nome ILIKE %s
+        ORDER BY feriado_data
+        LIMIT %s
+    """, (ANO_PRINCIPAL, padrao, limite))
+
+    return {"estados": estados, "cidades": cidades, "feriados": feriados}
+
+
 # ── Rotas ─────────────────────────────────────────────────────
 
 @app.route("/")
@@ -225,6 +269,75 @@ def index():
     calendario = gerar_calendario(ANO_PRINCIPAL, feriados_nacionais)
 
     return render_template("index.html", estados=estados, ano=ANO_PRINCIPAL, calendario=calendario)
+
+
+@app.route("/buscar/")
+def buscar():
+    """Busca por estado, cidade ou feriado (usada pelo input do header
+    e pela busca em destaque da home). Redireciona direto quando há um
+    único resultado óbvio; senão mostra a página de resultados."""
+    termo = request.args.get("q", "").strip()
+    if not termo:
+        return redirect("/")
+
+    resultados = _buscar_tudo(termo, limite=12)
+    total = len(resultados["estados"]) + len(resultados["cidades"]) + len(resultados["feriados"])
+
+    if total == 0:
+        return render_template("busca_resultados.html", termo=termo, resultados=resultados, ano=ANO_PRINCIPAL)
+
+    # Resultado único e inequívoco → vai direto pra página, sem passar
+    # pela tela de resultados.
+    if total == 1:
+        if resultados["estados"]:
+            uf = resultados["estados"][0]["uf"].lower()
+            return redirect(f"/{uf}/")
+        if resultados["cidades"]:
+            c = resultados["cidades"][0]
+            return redirect(f"/{c['uf'].lower()}/{c['slug']}/")
+        if resultados["feriados"]:
+            f = resultados["feriados"][0]
+            if f.get("uf"):
+                return redirect(f"/{f['uf'].lower()}/")
+            return redirect("/")
+
+    return render_template("busca_resultados.html", termo=termo, resultados=resultados, ano=ANO_PRINCIPAL)
+
+
+@app.route("/api/autocomplete/")
+def api_autocomplete():
+    """Sugestões em JSON pro campo de busca rápida do header
+    (dropdown de autocomplete enquanto o usuário digita)."""
+    termo = request.args.get("q", "").strip()
+    if len(termo) < 2:
+        return jsonify({"resultados": []})
+
+    dados = _buscar_tudo(termo, limite=5)
+    sugestoes = []
+
+    for e in dados["estados"]:
+        sugestoes.append({
+            "tipo": "estado",
+            "label": e["nome"],
+            "url": f"/{e['uf'].lower()}/",
+        })
+
+    for c in dados["cidades"]:
+        sugestoes.append({
+            "tipo": "cidade",
+            "label": f"{c['nome']} — {c['uf']}",
+            "url": f"/{c['uf'].lower()}/{c['slug']}/",
+        })
+
+    for f in dados["feriados"]:
+        url = f"/{f['uf'].lower()}/" if f.get("uf") else "/"
+        sugestoes.append({
+            "tipo": "feriado",
+            "label": f"{f['nome']} ({f['data'].strftime('%d/%m')})",
+            "url": url,
+        })
+
+    return jsonify({"resultados": sugestoes[:10]})
 
 
 @app.route("/<uf>/")
