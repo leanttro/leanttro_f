@@ -12,10 +12,20 @@
 #    /<uf>/calculadora-ferias/ (por estado, com feriados estaduais)
 #  - Cotação de dólar: /cotacao-dolar/ (AwesomeAPI, cache de 10 min)
 #  - Dependência nova: requests (adicionar no requirements.txt)
+#  - Seção /turismo/ (diretório de negócios locais):
+#      /turismo/                                   → home da seção
+#      /turismo/<categoria-slug>/                  → CANÔNICA: por categoria
+#      /turismo/<categoria-slug>/<negocio-slug>/   → CANÔNICA: detalhe
+#      /<uf>/<cidade-slug>/turismo/                → negócios da cidade
+#      /<uf>/<cidade-slug>/turismo/<negocio-slug>/ → 301 pra canônica
+#    Lê de feriado_negocios/feriado_categorias (cidade já resolvida via
+#    ibge_code — sem fuzzy matching). "Perto de mim" com navigator.geo-
+#    location fica todo no JS do template (turismo_negocios_secao.html).
 # ════════════════════════════════════════════════════════════
 
 import calendar as calendar_lib
 import json
+import math
 import time
 from flask import Flask, render_template, g, abort, request, redirect, jsonify, Response
 from datetime import date, timedelta
@@ -42,6 +52,9 @@ BASE_URL = os.getenv("BASE_URL", "https://www.feriados2027.com.br").rstrip("/")
 
 # Opções de dias de férias oferecidas na calculadora (dropdown/botões)
 DIAS_FERIAS_OPCOES = [5, 10, 15, 20, 30]
+
+# Quantos negócios por página nas listagens de /turismo/ (numerada, ?pagina=N)
+NEGOCIOS_POR_PAGINA = 24
 
 
 @app.before_request
@@ -444,6 +457,117 @@ def _cidades_do_estado(uf):
     )
 
 
+# ── Turismo (seção /turismo/) ─────────────────────────────────
+# Negócios já vêm com cidade RESOLVIDA via ibge_code (FK pra
+# feriado_municipios) — nada de fuzzy matching de nome de cidade aqui,
+# diferente do hub multi-tenant que serviu de inspiração de layout.
+#
+# Todas as queries abaixo só trazem negócio ATIVO de categoria ATIVA
+# (n.ativo = true AND c.ativo = true) — um negócio desativado, ou
+# de categoria desativada, simplesmente some do site sem precisar
+# apagar a linha do banco.
+
+_NEGOCIO_CAMPOS_SQL = """
+    n.id AS negocio_id, n.nome AS negocio_nome, n.slug AS negocio_slug,
+    n.descricao AS negocio_descricao, n.foto_url AS negocio_foto_url,
+    n.endereco AS negocio_endereco, n.bairro AS negocio_bairro,
+    n.cidade AS negocio_cidade_texto, n.ibge_code AS negocio_ibge_code,
+    n.lat AS negocio_lat, n.lng AS negocio_lng,
+    n.whatsapp AS negocio_whatsapp, n.telefone AS negocio_telefone,
+    n.site_url AS negocio_site_url, n.instagram AS negocio_instagram,
+    c.id AS categoria_id, c.nome AS categoria_nome, c.slug AS categoria_slug,
+    c.icone_url AS categoria_icone_url,
+    m.feriado_municipio_nome AS cidade_nome, m.feriado_municipio_slug AS cidade_slug,
+    m.feriado_municipio_uf AS cidade_uf
+"""
+
+_NEGOCIO_FROM_SQL = """
+    FROM feriado_negocios n
+    JOIN feriado_categorias c ON c.id = n.categoria_id
+    LEFT JOIN feriado_municipios m ON m.feriado_municipio_ibge_code = n.ibge_code
+    WHERE n.ativo = true AND c.ativo = true
+"""
+
+
+def _categorias_turismo():
+    return query("""
+        SELECT id, nome, slug, icone_url
+        FROM feriado_categorias
+        WHERE ativo = true
+        ORDER BY nome
+    """)
+
+
+def _contar_negocios_turismo(categoria_id=None, ibge_code=None):
+    sql = "SELECT COUNT(*) AS total " + _NEGOCIO_FROM_SQL
+    params = []
+    if categoria_id is not None:
+        sql += " AND n.categoria_id = %s"
+        params.append(categoria_id)
+    if ibge_code is not None:
+        sql += " AND n.ibge_code = %s"
+        params.append(ibge_code)
+    linha = query(sql, tuple(params), one=True)
+    return linha["total"] if linha else 0
+
+
+def _listar_negocios_turismo(categoria_id=None, ibge_code=None, pagina=1,
+                              por_pagina=NEGOCIOS_POR_PAGINA, excluir_id=None):
+    """Lista negócios ordenados por nome (comportamento padrão — a
+    ordenação por distância acontece no CLIENTE, via JS, depois que o
+    usuário libera geolocalização; ver _turismo_negocios_secao.html)."""
+    sql = "SELECT " + _NEGOCIO_CAMPOS_SQL + _NEGOCIO_FROM_SQL
+    params = []
+    if categoria_id is not None:
+        sql += " AND n.categoria_id = %s"
+        params.append(categoria_id)
+    if ibge_code is not None:
+        sql += " AND n.ibge_code = %s"
+        params.append(ibge_code)
+    if excluir_id is not None:
+        sql += " AND n.id != %s"
+        params.append(excluir_id)
+    sql += " ORDER BY n.nome LIMIT %s OFFSET %s"
+    params += [por_pagina, (pagina - 1) * por_pagina]
+    return query(sql, tuple(params))
+
+
+def _negocio_por_categoria_e_slug(categoria_slug, negocio_slug):
+    sql = "SELECT " + _NEGOCIO_CAMPOS_SQL + _NEGOCIO_FROM_SQL
+    sql += " AND c.slug = %s AND n.slug = %s"
+    return query(sql, (categoria_slug, negocio_slug), one=True)
+
+
+def _negocio_por_ibge_e_slug(ibge_code, negocio_slug):
+    """Usado só pelo redirect /<uf>/<cidade>/turismo/<negocio>/ — acha o
+    negócio pela cidade (ibge_code) + slug, pra montar a URL canônica
+    por categoria."""
+    sql = "SELECT " + _NEGOCIO_CAMPOS_SQL + _NEGOCIO_FROM_SQL
+    sql += " AND n.ibge_code = %s AND n.slug = %s"
+    return query(sql, (ibge_code, negocio_slug), one=True)
+
+
+def _negocios_para_json(negocios):
+    """Serializa os campos que o front usa pro carrossel/grid + cálculo
+    de distância (cardHTML() no JS). Mantém só o necessário — nada de
+    descrição longa aqui, isso fica só na página de detalhe."""
+    return [
+        {
+            "nome": n["negocio_nome"],
+            "slug": n["negocio_slug"],
+            "categoriaSlug": n["categoria_slug"],
+            "categoriaNome": n["categoria_nome"],
+            "categoriaIcone": n["categoria_icone_url"],
+            "fotoUrl": n["negocio_foto_url"],
+            "bairro": n["negocio_bairro"],
+            "cidadeNome": n["cidade_nome"] or n["negocio_cidade_texto"],
+            "lat": float(n["negocio_lat"]) if n["negocio_lat"] is not None else None,
+            "lng": float(n["negocio_lng"]) if n["negocio_lng"] is not None else None,
+        }
+        for n in negocios
+    ]
+
+
 # ── Busca (estados, cidades e feriados) ───────────────────────
 # Usada pela rota /buscar/ (página de resultados) e pelo
 # autocomplete do header (/api/autocomplete/).
@@ -794,6 +918,221 @@ def pagina_cidade(uf, cidade_slug):
     )
 
 
+# ── NOVO: Turismo — /turismo/ ──────────────────────────────────
+# Estrutura de URL (ver contexto do projeto pra decisão completa):
+#   /turismo/                                   → home da seção
+#   /turismo/<categoria-slug>/                  → CANÔNICA: listagem por categoria
+#   /turismo/<categoria-slug>/<negocio-slug>/   → CANÔNICA: detalhe do negócio
+#   /<uf>/<cidade-slug>/turismo/                → negócios daquela cidade
+#   /<uf>/<cidade-slug>/turismo/<negocio-slug>/ → redirect 301 pra canônica
+#
+# A cidade é uma forma de NAVEGAR até o negócio; a URL indexada (a que
+# entra no sitemap, canonical, JSON-LD etc.) é sempre a de categoria.
+
+@app.route("/turismo/")
+def turismo_index():
+    pagina = request.args.get("pagina", default=1, type=int)
+    if pagina < 1:
+        pagina = 1
+
+    total = _contar_negocios_turismo()
+    total_paginas = max(1, math.ceil(total / NEGOCIOS_POR_PAGINA))
+    pagina = min(pagina, total_paginas)
+
+    categorias = _categorias_turismo()
+    negocios = _listar_negocios_turismo(pagina=pagina)
+
+    return render_template(
+        "turismo_index.html",
+        ano=ANO_PRINCIPAL,
+        categorias=categorias,
+        categoria_ativa=None,
+        negocios=negocios,
+        negocios_json=json.dumps(_negocios_para_json(negocios)),
+        pagina=pagina,
+        total_paginas=total_paginas,
+        total_negocios=total,
+        url_base_paginacao="/turismo/",
+        secao_id="home",
+        mostrar_filtro=True,
+    )
+
+
+@app.route("/turismo/<categoria_slug>/")
+def turismo_categoria(categoria_slug):
+    categoria = query(
+        "SELECT id, nome, slug, icone_url FROM feriado_categorias WHERE slug = %s AND ativo = true",
+        (categoria_slug,), one=True,
+    )
+    if not categoria:
+        abort(404)
+
+    pagina = request.args.get("pagina", default=1, type=int)
+    if pagina < 1:
+        pagina = 1
+
+    total = _contar_negocios_turismo(categoria_id=categoria["id"])
+    total_paginas = max(1, math.ceil(total / NEGOCIOS_POR_PAGINA))
+    pagina = min(pagina, total_paginas)
+
+    categorias = _categorias_turismo()
+    negocios = _listar_negocios_turismo(categoria_id=categoria["id"], pagina=pagina)
+
+    return render_template(
+        "turismo_categoria.html",
+        ano=ANO_PRINCIPAL,
+        categoria=categoria,
+        categorias=categorias,
+        categoria_ativa=categoria,
+        negocios=negocios,
+        negocios_json=json.dumps(_negocios_para_json(negocios)),
+        pagina=pagina,
+        total_paginas=total_paginas,
+        total_negocios=total,
+        url_base_paginacao=f"/turismo/{categoria_slug}/",
+        secao_id="categoria",
+        mostrar_filtro=True,
+    )
+
+
+def _json_ld_negocio(negocio):
+    """Monta o LocalBusiness (+ breadcrumb) em Python — mais seguro do
+    que montar JSON à mão no template, com campos opcionais que podem
+    ou não estar preenchidos no banco."""
+    url_canonica = f"{BASE_URL}/turismo/{negocio['categoria_slug']}/{negocio['negocio_slug']}/"
+
+    endereco = {"@type": "PostalAddress", "addressCountry": "BR"}
+    if negocio["negocio_endereco"]:
+        endereco["streetAddress"] = negocio["negocio_endereco"]
+    if negocio["cidade_nome"]:
+        endereco["addressLocality"] = negocio["cidade_nome"]
+    if negocio["cidade_uf"]:
+        endereco["addressRegion"] = negocio["cidade_uf"]
+
+    dados = {
+        "@type": "LocalBusiness",
+        "name": negocio["negocio_nome"],
+        "url": url_canonica,
+        "address": endereco,
+    }
+    if negocio["negocio_descricao"]:
+        dados["description"] = negocio["negocio_descricao"]
+    if negocio["negocio_foto_url"]:
+        dados["image"] = negocio["negocio_foto_url"]
+    if negocio["negocio_telefone"]:
+        dados["telephone"] = negocio["negocio_telefone"]
+    if negocio["negocio_lat"] is not None and negocio["negocio_lng"] is not None:
+        dados["geo"] = {
+            "@type": "GeoCoordinates",
+            "latitude": float(negocio["negocio_lat"]),
+            "longitude": float(negocio["negocio_lng"]),
+        }
+
+    breadcrumb = {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Início", "item": f"{BASE_URL}/"},
+            {"@type": "ListItem", "position": 2, "name": "Turismo", "item": f"{BASE_URL}/turismo/"},
+            {"@type": "ListItem", "position": 3, "name": negocio["categoria_nome"],
+             "item": f"{BASE_URL}/turismo/{negocio['categoria_slug']}/"},
+            {"@type": "ListItem", "position": 4, "name": negocio["negocio_nome"], "item": url_canonica},
+        ],
+    }
+
+    # "@graph" junta os dois blocos (LocalBusiness + BreadcrumbList) num
+    # único <script type="application/ld+json"> válido.
+    return json.dumps({"@context": "https://schema.org", "@graph": [dados, breadcrumb]})
+
+
+@app.route("/turismo/<categoria_slug>/<negocio_slug>/")
+def turismo_negocio(categoria_slug, negocio_slug):
+    negocio = _negocio_por_categoria_e_slug(categoria_slug, negocio_slug)
+    if not negocio:
+        abort(404)
+
+    similares = _listar_negocios_turismo(
+        categoria_id=negocio["categoria_id"], pagina=1, por_pagina=4,
+        excluir_id=negocio["negocio_id"],
+    )
+
+    return render_template(
+        "turismo_negocio.html",
+        ano=ANO_PRINCIPAL,
+        negocio=negocio,
+        similares=similares,
+        json_ld_negocio=_json_ld_negocio(negocio),
+    )
+
+
+@app.route("/<uf>/<cidade_slug>/turismo/")
+def pagina_cidade_turismo(uf, cidade_slug):
+    uf = uf.upper()
+    estado = query(
+        "SELECT feriado_estado_uf AS uf, feriado_estado_nome AS nome FROM feriado_estados WHERE feriado_estado_uf = %s",
+        (uf,), one=True,
+    )
+    if not estado:
+        abort(404)
+
+    cidade = query(
+        """SELECT feriado_municipio_ibge_code AS ibge_code, feriado_municipio_nome AS nome,
+                  feriado_municipio_slug AS slug, feriado_municipio_uf AS uf
+           FROM feriado_municipios WHERE feriado_municipio_uf = %s AND feriado_municipio_slug = %s""",
+        (uf, cidade_slug), one=True,
+    )
+    if not cidade:
+        abort(404)
+
+    cidades = _cidades_do_estado(uf)  # pro dropdown de cidade do header
+
+    pagina = request.args.get("pagina", default=1, type=int)
+    if pagina < 1:
+        pagina = 1
+
+    total = _contar_negocios_turismo(ibge_code=cidade["ibge_code"])
+    total_paginas = max(1, math.ceil(total / NEGOCIOS_POR_PAGINA))
+    pagina = min(pagina, total_paginas)
+
+    negocios = _listar_negocios_turismo(ibge_code=cidade["ibge_code"], pagina=pagina)
+
+    return render_template(
+        "cidade_turismo.html",
+        ano=ANO_PRINCIPAL,
+        estado=estado, cidade=cidade, cidades=cidades,
+        negocios=negocios,
+        negocios_json=json.dumps(_negocios_para_json(negocios)),
+        pagina=pagina,
+        total_paginas=total_paginas,
+        total_negocios=total,
+        url_base_paginacao=f"/{uf.lower()}/{cidade_slug}/turismo/",
+        secao_id="cidade",
+        mostrar_filtro=False,
+        categorias=None,
+        categoria_ativa=None,
+    )
+
+
+@app.route("/<uf>/<cidade_slug>/turismo/<negocio_slug>/")
+def redirect_negocio_por_cidade(uf, cidade_slug, negocio_slug):
+    """Cidade é só um caminho de navegação — a URL que fica indexada é
+    sempre a canônica por categoria. 301 permanente pra não espalhar
+    conteúdo duplicado do mesmo negócio em duas URLs diferentes."""
+    uf = uf.upper()
+    cidade = query(
+        """SELECT feriado_municipio_ibge_code AS ibge_code
+           FROM feriado_municipios WHERE feriado_municipio_uf = %s AND feriado_municipio_slug = %s""",
+        (uf, cidade_slug), one=True,
+    )
+    if not cidade:
+        abort(404)
+
+    negocio = _negocio_por_ibge_e_slug(cidade["ibge_code"], negocio_slug)
+    if not negocio:
+        abort(404)
+
+    return redirect(f"/turismo/{negocio['categoria_slug']}/{negocio['negocio_slug']}/", code=301)
+
+
 # ── SEO técnico: sitemap.xml e robots.txt ─────────────────────
 
 @app.route("/sitemap.xml")
@@ -827,6 +1166,57 @@ def sitemap():
             "loc": f"{BASE_URL}/{uf}/{c['slug']}/",
             "changefreq": "weekly",
             "priority": "0.6",
+            "lastmod": hoje,
+        })
+
+    # NOVO: seção /turismo/ — home + páginas de categoria + páginas de
+    # negócio, todas na URL CANÔNICA (por categoria). As URLs de negócio
+    # acessadas pelo caminho da cidade nunca entram aqui, pois só
+    # existem pra dar 301 pra cá — colocá-las no sitemap seria mandar
+    # o Google indexar uma URL que a própria página descarta.
+    urls.append({"loc": f"{BASE_URL}/turismo/", "changefreq": "weekly", "priority": "0.8", "lastmod": hoje})
+
+    categorias_turismo = _categorias_turismo()
+    for cat in categorias_turismo:
+        urls.append({
+            "loc": f"{BASE_URL}/turismo/{cat['slug']}/",
+            "changefreq": "weekly",
+            "priority": "0.7",
+            "lastmod": hoje,
+        })
+
+    negocios_sitemap = query("""
+        SELECT n.slug AS negocio_slug, c.slug AS categoria_slug
+        FROM feriado_negocios n
+        JOIN feriado_categorias c ON c.id = n.categoria_id
+        WHERE n.ativo = true AND c.ativo = true
+        ORDER BY c.slug, n.slug
+    """)
+    for n in negocios_sitemap:
+        urls.append({
+            "loc": f"{BASE_URL}/turismo/{n['categoria_slug']}/{n['negocio_slug']}/",
+            "changefreq": "monthly",
+            "priority": "0.6",
+            "lastmod": hoje,
+        })
+
+    # Páginas de turismo por cidade — só entram no sitemap as cidades
+    # que já têm pelo menos 1 negócio ativo (evita listar centenas de
+    # páginas vazias pro Google rastrear à toa).
+    cidades_com_turismo = query("""
+        SELECT DISTINCT m.feriado_municipio_uf AS uf, m.feriado_municipio_slug AS slug
+        FROM feriado_negocios n
+        JOIN feriado_categorias c ON c.id = n.categoria_id
+        JOIN feriado_municipios m ON m.feriado_municipio_ibge_code = n.ibge_code
+        WHERE n.ativo = true AND c.ativo = true
+        ORDER BY m.feriado_municipio_uf, m.feriado_municipio_slug
+    """)
+    for c in cidades_com_turismo:
+        uf = c["uf"].lower()
+        urls.append({
+            "loc": f"{BASE_URL}/{uf}/{c['slug']}/turismo/",
+            "changefreq": "weekly",
+            "priority": "0.5",
             "lastmod": hoje,
         })
 
