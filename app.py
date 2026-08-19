@@ -15,17 +15,21 @@ import os
 import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
 
 app = Flask(__name__)
+# Dokploy/Traefik faz o SSL termination e repassa pro container em HTTP puro.
+# Sem isso, o Flask acha que toda requisição é http:// — quebrava o canonical.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.url_map.strict_slashes = False
 
 ANO_PRINCIPAL = 2027  # ano em foco do projeto — usado como default nas páginas
 
 # Domínio usado no sitemap.xml e no robots.txt. Pode ser sobrescrito
 # via variável de ambiente BASE_URL no .env, se precisar.
-BASE_URL = os.getenv("BASE_URL", "https://feriados2027.com.br").rstrip("/")
+BASE_URL = os.getenv("BASE_URL", "https://www.feriados2027.com.br").rstrip("/")
 
 MESES_NOMES = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
