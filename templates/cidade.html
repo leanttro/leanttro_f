@@ -7,6 +7,7 @@
 <div class="card">
   <h1>🏙️ {{ cidade.nome }}, {{ estado.nome }}</h1>
   <p>Calendário completo de feriados em {{ cidade.nome }} para {{ ano }}, com análise de emendas e melhores datas para tirar folga.</p>
+  <a href="/{{ estado.uf.lower() }}/{{ cidade.slug }}/turismo/" class="chip-categoria">🧭 Ver turismo e negócios locais em {{ cidade.nome }}</a>
 </div>
 
 <!-- ── FERRAMENTAS EM DESTAQUE: CALCULADORA DE FÉRIAS + DÓLAR ───── -->
