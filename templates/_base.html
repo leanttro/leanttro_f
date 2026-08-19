@@ -6,149 +6,425 @@
 <title>{% block title %}Feriados {{ ano }}{% endblock %}</title>
 <style>
   :root {
-    --verde: #035105;
-    --verde-escuro: #023a04;
-    --verde-claro: #def8c3;
+    --azul-bebe: #E3F2FD;
+    --azul-bebe-forte: #BBDEFB;
+    --azul-bebe-mais-forte: #90CAF9;
+    --verde-agua: #20C997;
+    --verde-agua-claro: #51E5A8;
+    --verde-agua-escuro: #0FA973;
     --texto: #1a1a1a;
+    --texto-claro: #555555;
     --card: #ffffff;
     --vermelho: #dc2626;
     --vermelho-claro: #fee2e2;
     --azul: #2563eb;
     --azul-claro: #dbeafe;
-    --cinza-borda: #e8ede4;
+    --cinza-borda: #e0e0e0;
     --roxo: #9333ea;
     --roxo-claro: #f3e8ff;
     --laranja: #f97316;
     --laranja-claro: #fed7aa;
+    --sombra: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
+  
   * { box-sizing: border-box; }
+  
   body {
-    font-family: system-ui, -apple-system, sans-serif;
-    background: var(--verde-claro);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+    background: linear-gradient(135deg, var(--azul-bebe) 0%, #F0F9FF 50%, #E0F9F5 100%);
     color: var(--texto);
     margin: 0;
     padding: 0;
+    min-height: 100vh;
   }
 
-  /* ── Cabeçalho ─────────────────────────────────────────── */
+  /* ── CABEÇALHO ─────────────────────────────────────────── */
   header {
-    background: linear-gradient(135deg, var(--verde-escuro), var(--verde));
+    background: linear-gradient(90deg, #1E88E5 0%, var(--verde-agua) 100%);
     color: #fff;
-    padding: 18px 20px;
+    padding: 16px 20px;
+    box-shadow: 0 8px 24px rgba(30, 136, 229, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
+  
   .header-inner {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
+    gap: 20px;
   }
-  .marca { display: flex; align-items: center; gap: 10px; }
-  .marca .icone { font-size: 26px; }
-  .marca a { color: #fff; text-decoration: none; }
-  .marca h1 { font-size: 19px; margin: 0; font-weight: 800; }
-  .marca p { margin: 2px 0 0; font-size: 12px; color: #d7f2d0; }
+  
+  .marca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .marca img {
+    height: 48px;
+    width: auto;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  }
+  
+  .marca a {
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .marca h1 {
+    font-size: 22px;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  
+  .marca p {
+    margin: 0;
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    font-weight: 400;
+  }
 
-  .controles { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* ── Controles no header ─────────────────────────────── */
+  .controles {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex: 1;
+    max-width: 500px;
+    align-items: center;
+  }
+
+  .search-container {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 28px;
+    padding: 0 16px;
+    transition: all 0.3s ease;
+  }
+
+  .search-container:focus-within {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.6);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+  }
+
+  .search-container input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: #fff;
+    padding: 10px 0;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .search-container input::placeholder {
+    color: rgba(255,255,255,0.7);
+  }
+
+  .search-container::before {
+    content: "🔍";
+    margin-right: 8px;
+    font-size: 16px;
+  }
+
   .controles select {
     appearance: none;
-    background: rgba(255,255,255,.14);
+    background: rgba(255,255,255,.15);
     border: 1px solid rgba(255,255,255,.35);
     color: #fff;
-    padding: 9px 34px 9px 14px;
-    border-radius: 10px;
+    padding: 10px 36px 10px 14px;
+    border-radius: 24px;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23ffffff'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 14px center;
+    background-position: right 12px center;
+    transition: all 0.3s ease;
   }
-  .controles select option { color: #1a1a1a; }
-  .controles select:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
-  main { max-width: 1100px; margin: 0 auto; padding: 20px; }
+  .controles select:hover {
+    background-color: rgba(255,255,255,.22);
+  }
 
+  .controles select:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+
+  .controles select option {
+    color: #1a1a1a;
+  }
+
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 20px;
+  }
+
+  /* ── CARDS ─────────────────────────────────────────────── */
   .card {
     background: var(--card);
-    border-radius: 12px;
-    padding: 18px 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--sombra);
+    border: 1px solid rgba(32, 201, 151, 0.08);
+    transition: all 0.3s ease;
   }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+
+  .card:hover {
+    box-shadow: 0 8px 24px rgba(32, 201, 151, 0.12);
+  }
+
+  /* ── GRID DE ESTADOS/CIDADES ─────────────────────────── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
   .grid a {
-    display: block;
-    background: var(--card);
-    padding: 10px 12px;
-    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), var(--verde-agua-claro));
+    padding: 16px 12px;
+    border-radius: 14px;
     text-decoration: none;
-    color: var(--verde);
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    color: var(--verde-agua-escuro);
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(32, 201, 151, 0.1);
+    border: 1px solid rgba(32, 201, 151, 0.15);
+    transition: all 0.3s ease;
   }
-  .feriado-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eee; }
-  .feriado-item:last-child { border-bottom: none; }
-  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 700; white-space: nowrap; }
-  .tag-nacional { background: var(--vermelho-claro); color: var(--vermelho); }
-  .tag-estadual { background: var(--verde-claro); color: var(--verde); }
-  .tag-municipal { background: var(--azul-claro); color: var(--azul); }
-  .tag-ponto_facultativo { background: var(--roxo-claro); color: var(--roxo); }
-  .tag-comemorativa { background: var(--laranja-claro); color: var(--laranja); }
 
-  .ponte { border-left: 4px solid var(--verde); padding-left: 12px; margin-bottom: 14px; }
-  .ponte .destaque { font-size: 19px; font-weight: 700; color: var(--verde); }
-  h1 { color: var(--verde); margin-top: 0; }
-  h2 { color: var(--verde); font-size: 17px; margin-top: 0; }
-  .voltar { display: inline-block; margin-bottom: 14px; color: var(--verde-escuro); font-weight: 600; text-decoration: none; }
-  .voltar:hover { text-decoration: underline; }
+  .grid a:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(32, 201, 151, 0.2);
+    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), var(--verde-agua));
+  }
 
-  /* ── Calendário (grade de 12 meses) ───────────────────── */
+  /* ── TÍTULOS ───────────────────────────────────────── */
+  h1 {
+    color: var(--verde-agua-escuro);
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  h2 {
+    color: var(--verde-agua-escuro);
+    font-size: 18px;
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+
+  p {
+    color: var(--texto-claro);
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+  }
+
+  .voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+    color: var(--verde-agua);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  .voltar:hover {
+    gap: 10px;
+    color: var(--verde-agua-escuro);
+  }
+
+  .voltar::before {
+    content: "← ";
+  }
+
+  /* ── FERIADOS ──────────────────────────────────────── */
+  .feriado-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--azul-bebe);
+  }
+
+  .feriado-item:last-child {
+    border-bottom: none;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-nacional {
+    background: var(--vermelho-claro);
+    color: var(--vermelho);
+  }
+
+  .tag-estadual {
+    background: linear-gradient(135deg, rgba(32, 201, 151, 0.2), rgba(32, 201, 151, 0.1));
+    color: var(--verde-agua);
+  }
+
+  .tag-municipal {
+    background: var(--azul-claro);
+    color: var(--azul);
+  }
+
+  .tag-ponto_facultativo {
+    background: var(--roxo-claro);
+    color: var(--roxo);
+  }
+
+  .tag-comemorativa {
+    background: var(--laranja-claro);
+    color: var(--laranja);
+  }
+
+  /* ── PONTE/EMENDA ──────────────────────────────────── */
+  .ponte {
+    border-left: 4px solid var(--verde-agua);
+    padding-left: 16px;
+    margin-bottom: 16px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .ponte .destaque {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--verde-agua);
+  }
+
+  /* ── CALENDÁRIO (GRID DE 12 MESES) ─────────────────── */
   .calendario-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 20px;
   }
+
   .mes-card {
     background: var(--card);
-    border: 1px solid var(--cinza-borda);
-    border-radius: 12px;
-    padding: 14px;
+    border: 1px solid var(--azul-bebe-forte);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(30, 136, 229, 0.08);
+    transition: all 0.3s ease;
   }
-  .mes-titulo { font-weight: 800; color: var(--verde-escuro); margin-bottom: 8px; font-size: 15px; }
+
+  .mes-card:hover {
+    box-shadow: 0 8px 20px rgba(32, 201, 151, 0.12);
+    border-color: var(--verde-agua-claro);
+  }
+
+  .mes-titulo {
+    font-weight: 800;
+    color: var(--verde-agua-escuro);
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+
   .dias-semana {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     font-size: 10px;
-    color: #8a938a;
+    color: #999;
     text-align: center;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     font-weight: 700;
+    text-transform: uppercase;
   }
+
   .grade-dias {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 3px;
     margin-bottom: 3px;
   }
-  .dia-cell { display: contents; }
+
+  .dia-cell {
+    display: contents;
+  }
+
   .dia {
     aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    border-radius: 7px;
+    border-radius: 10px;
     color: #333;
+    font-weight: 600;
   }
-  .dia.vazio { visibility: hidden; }
-  .dia.feriado-nacional { background: var(--vermelho); color: #fff; font-weight: 800; }
-  .dia.feriado-estadual { background: var(--verde); color: #fff; font-weight: 800; }
-  .dia.feriado-municipal { background: var(--azul); color: #fff; font-weight: 800; }
-  .dia.feriado-ponto_facultativo { background: var(--roxo); color: #fff; font-weight: 800; }
-  .dia.feriado-comemorativa { background: var(--laranja); color: #fff; font-weight: 800; }
+
+  .dia.vazio {
+    visibility: hidden;
+  }
+
+  .dia.feriado-nacional {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: var(--vermelho);
+    font-weight: 800;
+  }
+
+  .dia.feriado-estadual {
+    background: linear-gradient(135deg, rgba(32, 201, 151, 0.3), rgba(32, 201, 151, 0.15));
+    color: var(--verde-agua-escuro);
+    font-weight: 800;
+  }
+
+  .dia.feriado-municipal {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: var(--azul);
+    font-weight: 800;
+  }
+
+  .dia.feriado-ponto_facultativo {
+    background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+    color: var(--roxo);
+    font-weight: 800;
+  }
+
+  .dia.feriado-comemorativa {
+    background: linear-gradient(135deg, #fed7aa, #fdba74);
+    color: var(--laranja);
+    font-weight: 800;
+  }
 
   button.dia {
     width: 100%;
@@ -156,81 +432,296 @@
     font: inherit;
     cursor: pointer;
     padding: 0;
-    transition: filter .15s;
+    transition: all 0.2s ease;
   }
+
   button.dia:hover,
   button.dia:focus-visible,
   button.dia[aria-expanded="true"] {
-    filter: brightness(1.15);
-    outline: 2px solid rgba(255,255,255,.8);
-    outline-offset: -2px;
+    filter: brightness(0.95);
+    transform: scale(1.08);
+    outline: 2px solid rgba(32, 201, 151, 0.4);
+    outline-offset: -1px;
   }
 
-  .lista-feriados-mes { margin-top: 10px; border-top: 1px dashed var(--cinza-borda); padding-top: 8px; }
-  .lista-feriados-mes .item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; margin-bottom: 5px; }
-  .lista-feriados-mes .dia-num { font-weight: 800; color: var(--verde-escuro); width: 18px; flex-shrink: 0; }
-  .lista-feriados-mes .nome-feriado { flex: 1; }
-  .lista-feriados-mes .tag { font-size: 9.5px; padding: 1px 7px; }
-  .sem-feriados-mes { font-size: 11.5px; color: #9aa39a; margin-top: 8px; }
+  .lista-feriados-mes {
+    margin-top: 12px;
+    border-top: 1px dashed var(--azul-bebe-forte);
+    padding-top: 10px;
+  }
 
-  /* ── Popover de descrição do feriado ──────────────────── */
+  .lista-feriados-mes .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .lista-feriados-mes .dia-num {
+    font-weight: 800;
+    color: var(--verde-agua);
+    width: 20px;
+    flex-shrink: 0;
+    background: rgba(32, 201, 151, 0.1);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    font-size: 11px;
+  }
+
+  .lista-feriados-mes .nome-feriado {
+    flex: 1;
+    color: var(--texto);
+  }
+
+  .lista-feriados-mes .tag {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
+  .sem-feriados-mes {
+    font-size: 12px;
+    color: #bbb;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  /* ── POPOVER DE FERIADO ────────────────────────────── */
   .feriado-popover-panel {
     position: fixed;
     z-index: 1000;
-    width: min(300px, calc(100vw - 20px));
+    width: min(340px, calc(100vw - 24px));
     background: var(--card);
-    border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(0,0,0,.28);
-    max-height: min(400px, calc(100vh - 20px));
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    max-height: min(450px, calc(100vh - 24px));
     overflow-y: auto;
+    border: 1px solid var(--azul-bebe-forte);
   }
+
   .feriado-popover-panel .fp-close {
     position: sticky;
     float: right;
-    top: 6px;
-    right: 6px;
-    margin: 6px 6px 0 0;
-    width: 26px;
-    height: 26px;
+    top: 8px;
+    right: 8px;
+    margin: 8px 8px 0 0;
+    width: 32px;
+    height: 32px;
     border: 0;
     border-radius: 50%;
-    background: rgba(0,0,0,.06);
-    color: #555;
-    font-size: 16px;
+    background: linear-gradient(135deg, var(--azul-bebe), var(--azul-bebe-mais-forte));
+    color: var(--verde-agua);
+    font-size: 18px;
     line-height: 1;
     cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
   }
-  .feriado-popover-panel .fp-close:hover { background: rgba(0,0,0,.12); }
-  .feriado-info { padding: 6px 18px 18px; clear: both; }
-  .feriado-info + .feriado-info { border-top: 1px solid var(--cinza-borda); padding-top: 16px; }
+
+  .feriado-popover-panel .fp-close:hover {
+    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), var(--verde-agua-claro));
+    color: #fff;
+    transform: rotate(90deg);
+  }
+
+  .feriado-info {
+    padding: 8px 20px 20px;
+    clear: both;
+  }
+
+  .feriado-info + .feriado-info {
+    border-top: 1px solid var(--azul-bebe);
+    padding-top: 16px;
+  }
+
   .fp-tag {
     display: inline-block;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: .02em;
-    padding: 4px 12px;
-    border-radius: 999px;
+    padding: 6px 14px;
+    border-radius: 20px;
     text-transform: uppercase;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     color: #fff;
   }
-  .fp-tag.tag-nacional { background: var(--vermelho); }
-  .fp-tag.tag-estadual { background: var(--verde); }
-  .fp-tag.tag-municipal { background: var(--azul); }
-  .fp-tag.tag-ponto_facultativo { background: var(--roxo); }
-  .fp-tag.tag-comemorativa { background: var(--laranja); }
-  .fp-nome { margin: 0 0 8px; font-size: 16px; color: var(--verde-escuro); }
-  .fp-desc { margin: 0 0 10px; font-size: 13px; line-height: 1.55; color: #444; }
-  .fp-local { font-size: 12.5px; color: #666; }
 
-  @media (max-width: 860px) {
-    .calendario-grid { grid-template-columns: repeat(2, 1fr); }
+  .fp-tag.tag-nacional {
+    background: var(--vermelho);
   }
-  @media (max-width: 560px) {
-    .calendario-grid { grid-template-columns: 1fr; }
-    .header-inner { flex-direction: column; align-items: flex-start; }
-    .controles { width: 100%; }
-    .controles select { flex: 1; }
+
+  .fp-tag.tag-estadual {
+    background: var(--verde-agua);
+  }
+
+  .fp-tag.tag-municipal {
+    background: var(--azul);
+  }
+
+  .fp-tag.tag-ponto_facultativo {
+    background: var(--roxo);
+  }
+
+  .fp-tag.tag-comemorativa {
+    background: var(--laranja);
+  }
+
+  .fp-nome {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--verde-agua-escuro);
+  }
+
+  .fp-desc {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--texto-claro);
+  }
+
+  .fp-local {
+    font-size: 12px;
+    color: #999;
+  }
+
+  /* ── BUSCA PRINCIPAL (HOME) ────────────────────────── */
+  .search-hero {
+    background: linear-gradient(135deg, #1E88E5 0%, var(--verde-agua) 100%);
+    border-radius: 16px;
+    padding: 40px 24px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 32px;
+    box-shadow: 0 12px 32px rgba(30, 136, 229, 0.2);
+  }
+
+  .search-hero h1 {
+    color: #fff;
+    margin-bottom: 8px;
+    font-size: 32px;
+  }
+
+  .search-hero p {
+    color: rgba(255,255,255,0.95);
+    margin-bottom: 24px;
+    font-size: 15px;
+  }
+
+  .search-hero input {
+    width: 100%;
+    max-width: 500px;
+    padding: 14px 18px;
+    border: none;
+    border-radius: 28px;
+    font-size: 15px;
+    background: rgba(255,255,255,0.95);
+    color: #1a1a1a;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  .search-hero input::placeholder {
+    color: #999;
+  }
+
+  .search-hero input:focus {
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+    background: #fff;
+  }
+
+  /* ── RESPONSIVO ────────────────────────────────────── */
+  @media (max-width: 1000px) {
+    .calendario-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .calendario-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .header-inner {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .marca {
+      gap: 8px;
+    }
+
+    .marca img {
+      height: 40px;
+    }
+
+    .marca h1 {
+      font-size: 18px;
+    }
+
+    .controles {
+      width: 100%;
+      gap: 8px;
+    }
+
+    .controles select,
+    .search-container {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .search-container input {
+      font-size: 13px;
+    }
+
+    main {
+      padding: 20px 16px;
+    }
+
+    .card {
+      padding: 16px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+
+    .search-hero {
+      padding: 28px 16px;
+    }
+
+    .search-hero h1 {
+      font-size: 24px;
+    }
+
+    .search-hero input {
+      max-width: 100%;
+    }
+
+    h1 {
+      font-size: 22px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .marca h1 {
+      font-size: 16px;
+    }
+
+    .marca p {
+      font-size: 11px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    }
+
+    .search-hero h1 {
+      font-size: 20px;
+    }
   }
 </style>
 </head>
@@ -238,16 +729,19 @@
 <header>
   <div class="header-inner">
     <div class="marca">
-      <span class="icone">📅</span>
+      <img src="https://i.imgur.com/dlxIOwA.png" alt="Logo Feriados">
       <a href="/">
         <h1>Feriados {{ ano }}</h1>
-        <p>Calendário brasileiro completo — nacionais, estaduais e municipais</p>
+        <p>Calendário brasileiro completo</p>
       </a>
     </div>
     <div class="controles">
+      <div class="search-container">
+        <input type="text" id="busca-rapida" placeholder="Buscar feriado, estado ou cidade..." aria-label="Buscar feriado">
+      </div>
       <select id="sel-estado" aria-label="Selecione o estado"
         onchange="window.location.href = this.value ? '/' + this.value.toLowerCase() + '/' : '/';">
-        <option value="">Selecione o estado</option>
+        <option value="">Estado</option>
         {% for e in estados_dropdown %}
         <option value="{{ e.uf }}" {% if estado and estado.uf == e.uf %}selected{% endif %}>{{ e.nome }}</option>
         {% endfor %}
@@ -256,7 +750,7 @@
       {% if estado %}
       <select id="sel-cidade" aria-label="Selecione a cidade"
         onchange="if(this.value){ window.location.href = '/{{ estado.uf.lower() }}/' + this.value + '/'; }">
-        <option value="">Selecione a cidade</option>
+        <option value="">Cidade</option>
         {% for c in cidades %}
         <option value="{{ c.slug }}" {% if cidade and cidade.slug == c.slug %}selected{% endif %}>{{ c.nome }}</option>
         {% endfor %}
@@ -265,6 +759,7 @@
     </div>
   </div>
 </header>
+
 <main>
 {% block content %}{% endblock %}
 </main>
@@ -299,16 +794,16 @@
     btn.setAttribute('aria-expanded', 'true');
 
     var rect = btn.getBoundingClientRect();
-    var pw = popover.offsetWidth || 300;
-    var ph = popover.offsetHeight || 200;
+    var pw = popover.offsetWidth || 340;
+    var ph = popover.offsetHeight || 300;
 
     var left = rect.left + rect.width / 2 - pw / 2;
-    left = Math.max(10, Math.min(left, window.innerWidth - pw - 10));
+    left = Math.max(12, Math.min(left, window.innerWidth - pw - 12));
 
-    var top = rect.bottom + 8;
-    if (top + ph > window.innerHeight - 10) {
-      top = rect.top - ph - 8;
-      if (top < 10) top = 10;
+    var top = rect.bottom + 10;
+    if (top + ph > window.innerHeight - 12) {
+      top = rect.top - ph - 10;
+      if (top < 12) top = 12;
     }
 
     popover.style.left = left + 'px';
@@ -338,6 +833,19 @@
 
   window.addEventListener('resize', closePopover);
   window.addEventListener('scroll', closePopover, true);
+
+  // Busca rápida no header
+  var buscaRapida = document.getElementById('busca-rapida');
+  if (buscaRapida) {
+    buscaRapida.addEventListener('change', function(e) {
+      if (this.value.trim()) {
+        var termo = encodeURIComponent(this.value.toLowerCase());
+        // Aqui você pode redirecionar para uma página de busca ou filtrar
+        // Por enquanto, limpa o valor
+        this.value = '';
+      }
+    });
+  }
 })();
 </script>
 </body>
