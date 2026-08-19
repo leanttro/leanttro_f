@@ -127,6 +127,7 @@
     gap: 3px;
     margin-bottom: 3px;
   }
+  .dia-cell { display: contents; }
   .dia {
     aspect-ratio: 1;
     display: flex;
@@ -141,12 +142,76 @@
   .dia.feriado-estadual { background: var(--verde); color: #fff; font-weight: 800; }
   .dia.feriado-municipal { background: var(--azul); color: #fff; font-weight: 800; }
 
+  button.dia {
+    width: 100%;
+    border: 0;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+    transition: filter .15s;
+  }
+  button.dia:hover,
+  button.dia:focus-visible,
+  button.dia[aria-expanded="true"] {
+    filter: brightness(1.15);
+    outline: 2px solid rgba(255,255,255,.8);
+    outline-offset: -2px;
+  }
+
   .lista-feriados-mes { margin-top: 10px; border-top: 1px dashed var(--cinza-borda); padding-top: 8px; }
   .lista-feriados-mes .item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; margin-bottom: 5px; }
   .lista-feriados-mes .dia-num { font-weight: 800; color: var(--verde-escuro); width: 18px; flex-shrink: 0; }
   .lista-feriados-mes .nome-feriado { flex: 1; }
   .lista-feriados-mes .tag { font-size: 9.5px; padding: 1px 7px; }
   .sem-feriados-mes { font-size: 11.5px; color: #9aa39a; margin-top: 8px; }
+
+  /* ── Popover de descrição do feriado ──────────────────── */
+  .feriado-popover-panel {
+    position: fixed;
+    z-index: 1000;
+    width: min(300px, calc(100vw - 20px));
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.28);
+    max-height: min(400px, calc(100vh - 20px));
+    overflow-y: auto;
+  }
+  .feriado-popover-panel .fp-close {
+    position: sticky;
+    float: right;
+    top: 6px;
+    right: 6px;
+    margin: 6px 6px 0 0;
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(0,0,0,.06);
+    color: #555;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .feriado-popover-panel .fp-close:hover { background: rgba(0,0,0,.12); }
+  .feriado-info { padding: 6px 18px 18px; clear: both; }
+  .feriado-info + .feriado-info { border-top: 1px solid var(--cinza-borda); padding-top: 16px; }
+  .fp-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    color: #fff;
+  }
+  .fp-tag.tag-nacional { background: var(--vermelho); }
+  .fp-tag.tag-estadual { background: var(--verde); }
+  .fp-tag.tag-municipal { background: var(--azul); }
+  .fp-nome { margin: 0 0 8px; font-size: 16px; color: var(--verde-escuro); }
+  .fp-desc { margin: 0 0 10px; font-size: 13px; line-height: 1.55; color: #444; }
+  .fp-local { font-size: 12.5px; color: #666; }
 
   @media (max-width: 860px) {
     .calendario-grid { grid-template-columns: repeat(2, 1fr); }
@@ -193,5 +258,77 @@
 <main>
 {% block content %}{% endblock %}
 </main>
+
+<div id="feriado-popover" class="feriado-popover-panel" hidden>
+  <button type="button" class="fp-close" aria-label="Fechar">&times;</button>
+  <div class="fp-content"></div>
+</div>
+
+<script>
+(function () {
+  var popover = document.getElementById('feriado-popover');
+  var content = popover.querySelector('.fp-content');
+  var closeBtn = popover.querySelector('.fp-close');
+  var activeBtn = null;
+
+  function closePopover() {
+    popover.hidden = true;
+    if (activeBtn) {
+      activeBtn.setAttribute('aria-expanded', 'false');
+      activeBtn = null;
+    }
+  }
+
+  function openPopover(btn) {
+    var dados = btn.nextElementSibling;
+    if (!dados) return;
+
+    content.innerHTML = dados.innerHTML;
+    popover.hidden = false;
+    activeBtn = btn;
+    btn.setAttribute('aria-expanded', 'true');
+
+    var rect = btn.getBoundingClientRect();
+    var pw = popover.offsetWidth || 300;
+    var ph = popover.offsetHeight || 200;
+
+    var left = rect.left + rect.width / 2 - pw / 2;
+    left = Math.max(10, Math.min(left, window.innerWidth - pw - 10));
+
+    var top = rect.bottom + 8;
+    if (top + ph > window.innerHeight - 10) {
+      top = rect.top - ph - 8;
+      if (top < 10) top = 10;
+    }
+
+    popover.style.left = left + 'px';
+    popover.style.top = top + 'px';
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.dia[aria-haspopup]');
+    if (btn) {
+      if (activeBtn === btn) {
+        closePopover();
+      } else {
+        openPopover(btn);
+      }
+      return;
+    }
+    if (!popover.hidden && !popover.contains(e.target)) {
+      closePopover();
+    }
+  });
+
+  closeBtn.addEventListener('click', closePopover);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closePopover();
+  });
+
+  window.addEventListener('resize', closePopover);
+  window.addEventListener('scroll', closePopover, true);
+})();
+</script>
 </body>
 </html>
