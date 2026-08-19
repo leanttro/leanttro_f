@@ -15,6 +15,7 @@
 # ════════════════════════════════════════════════════════════
 
 import calendar as calendar_lib
+import json
 import time
 from flask import Flask, render_template, g, abort, request, redirect, jsonify, Response
 from datetime import date, timedelta
@@ -297,14 +298,51 @@ def _melhores_periodos_ferias(feriados, ano, n_dias, max_resultados=5):
 # {"erro": True} e o template mostra uma mensagem de fallback em vez
 # de quebrar a página.
 
-_DOLAR_CACHE = {"dados": None, "hora": 0}
-_DOLAR_CACHE_TTL_SEGUNDOS = 600  # 10 minutos
+# IMPORTANTE: o Gunicorn roda vários workers (processos separados). Um
+# cache em memória Python (dict comum) NÃO é compartilhado entre eles —
+# cada worker teria seu próprio cache, multiplicando as chamadas à API
+# pelo número de workers e estourando o rate limit (429) muito rápido.
+# Por isso o cache é gravado em ARQUIVO, que é compartilhado por todos
+# os processos do mesmo container.
+_DOLAR_CACHE_PATH = "/tmp/feriados2027_cotacao_dolar_cache.json"
+_DOLAR_CACHE_TTL_SEGUNDOS = 900          # 15 minutos — cotação não precisa ser por segundo
+_DOLAR_RETRY_COOLDOWN_SEGUNDOS = 180     # após falha (ex.: 429), espera 3 min antes de tentar de novo
+
+
+def _ler_cache_dolar_disco():
+    try:
+        with open(_DOLAR_CACHE_PATH, "r") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _gravar_cache_dolar_disco(entrada):
+    # Escrita atômica (escreve num .tmp e renomeia) — evita arquivo
+    # corrompido se dois workers gravarem ao mesmo tempo.
+    tmp_path = _DOLAR_CACHE_PATH + ".tmp"
+    try:
+        with open(tmp_path, "w") as f:
+            json.dump(entrada, f)
+        os.replace(tmp_path, _DOLAR_CACHE_PATH)
+    except Exception:
+        app.logger.exception("Falha ao gravar cache de cotação em disco")
 
 
 def _buscar_cotacao_dolar():
     agora = time.time()
-    if _DOLAR_CACHE["dados"] and (agora - _DOLAR_CACHE["hora"] < _DOLAR_CACHE_TTL_SEGUNDOS):
-        return _DOLAR_CACHE["dados"]
+    cache = _ler_cache_dolar_disco() or {}
+
+    # Cache ainda válido — nem chama a API.
+    if cache.get("cotacao") and (agora - cache.get("hora", 0) < _DOLAR_CACHE_TTL_SEGUNDOS):
+        return cache["cotacao"]
+
+    # Falhou recentemente (ex.: 429)? Respeita o cooldown e NÃO tenta de
+    # novo — isso é o que impede vários workers de martelarem a API ao
+    # mesmo tempo logo depois de um rate limit.
+    ultima_falha = cache.get("ultima_falha")
+    if ultima_falha and (agora - ultima_falha < _DOLAR_RETRY_COOLDOWN_SEGUNDOS):
+        return cache["cotacao"] if cache.get("cotacao") else {"erro": True}
 
     try:
         resp = requests.get(
@@ -322,22 +360,22 @@ def _buscar_cotacao_dolar():
             "minima": float(bruto["low"]),
             "atualizado_em": bruto["create_date"],  # "2027-01-05 14:32:10"
         }
-        _DOLAR_CACHE["dados"] = cotacao
-        _DOLAR_CACHE["hora"] = agora
+        _gravar_cache_dolar_disco({"cotacao": cotacao, "hora": agora, "ultima_falha": None})
         return cotacao
     except Exception as e:
-        # IMPORTANTE: loga a exceção real (com traceback) nos logs do
-        # container. Sem isso não tem como saber se é timeout, DNS,
-        # bloqueio de rede/firewall ou resposta inesperada da API.
-        # Olhe os logs do Dokploy (aba "Logs" do serviço) procurando
-        # por "Falha ao buscar cotação do dólar" pra ver a causa exata.
+        # Loga a exceção real (com traceback) nos logs do container —
+        # olhe a aba "Logs" do Dokploy procurando por essa mensagem.
         app.logger.exception("Falha ao buscar cotação do dólar: %s", e)
 
-        # Se já tem algo em cache (mesmo vencido), prefere mostrar isso
-        # a mostrar erro — cotação de 20 min atrás é melhor que nada.
-        if _DOLAR_CACHE["dados"]:
-            return _DOLAR_CACHE["dados"]
-        return {"erro": True}
+        # Marca a falha em disco (todos os workers passam a respeitar
+        # o cooldown) e devolve o último cache válido, se houver, em
+        # vez de mostrar erro pro usuário.
+        _gravar_cache_dolar_disco({
+            "cotacao": cache.get("cotacao"),
+            "hora": cache.get("hora", 0),
+            "ultima_falha": agora,
+        })
+        return cache["cotacao"] if cache.get("cotacao") else {"erro": True}
 
 
 def _feriados_da_cidade(ibge_code, uf, ano):
