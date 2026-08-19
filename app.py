@@ -122,12 +122,22 @@ def inject_globais():
         "SELECT feriado_estado_uf AS uf, feriado_estado_nome AS nome "
         "FROM feriado_estados ORDER BY feriado_estado_nome"
     )
+
+    # Cotação do dólar no header, em todas as páginas. Isso NÃO chama a
+    # API a cada request — só lê o cache em disco (mesmo cache usado
+    # pela página /cotacao-dolar/), então é praticamente de graça.
+    cotacao_header = _ler_cache_dolar_disco()
+    cotacao_header = (cotacao_header or {}).get("cotacao")
+    if not cotacao_header or cotacao_header.get("erro"):
+        cotacao_header = None
+
     return dict(
         estados_dropdown=estados,
         tipo_label=TIPO_LABEL,
         estado=None,
         cidade=None,
         cidades=None,
+        cotacao_header=cotacao_header,
     )
 
 
