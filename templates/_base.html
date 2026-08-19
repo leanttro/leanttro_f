@@ -7,9 +7,15 @@
 <style>
   :root {
     --verde: #035105;
+    --verde-escuro: #023a04;
     --verde-claro: #def8c3;
     --texto: #1a1a1a;
     --card: #ffffff;
+    --vermelho: #dc2626;
+    --vermelho-claro: #fee2e2;
+    --azul: #2563eb;
+    --azul-claro: #dbeafe;
+    --cinza-borda: #e8ede4;
   }
   * { box-sizing: border-box; }
   body {
@@ -19,18 +25,53 @@
     margin: 0;
     padding: 0;
   }
+
+  /* ── Cabeçalho ─────────────────────────────────────────── */
   header {
-    background: var(--verde);
+    background: linear-gradient(135deg, var(--verde-escuro), var(--verde));
     color: #fff;
-    padding: 16px 20px;
+    padding: 18px 20px;
   }
-  header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
-  main { max-width: 860px; margin: 0 auto; padding: 20px; }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .marca { display: flex; align-items: center; gap: 10px; }
+  .marca .icone { font-size: 26px; }
+  .marca a { color: #fff; text-decoration: none; }
+  .marca h1 { font-size: 19px; margin: 0; font-weight: 800; }
+  .marca p { margin: 2px 0 0; font-size: 12px; color: #d7f2d0; }
+
+  .controles { display: flex; gap: 8px; flex-wrap: wrap; }
+  .controles select {
+    appearance: none;
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.35);
+    color: #fff;
+    padding: 9px 34px 9px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23ffffff'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+  .controles select option { color: #1a1a1a; }
+  .controles select:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
   .card {
     background: var(--card);
     border-radius: 12px;
     padding: 18px 20px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     box-shadow: 0 2px 6px rgba(0,0,0,.08);
   }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
@@ -44,16 +85,111 @@
     font-weight: 600;
     box-shadow: 0 1px 3px rgba(0,0,0,.08);
   }
-  .feriado-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
-  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--verde-claro); color: var(--verde); font-weight: 600; }
+  .feriado-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eee; }
+  .feriado-item:last-child { border-bottom: none; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 700; white-space: nowrap; }
+  .tag-nacional { background: var(--vermelho-claro); color: var(--vermelho); }
+  .tag-estadual { background: var(--verde-claro); color: var(--verde); }
+  .tag-municipal { background: var(--azul-claro); color: var(--azul); }
+
   .ponte { border-left: 4px solid var(--verde); padding-left: 12px; margin-bottom: 14px; }
-  .ponte .destaque { font-size: 20px; font-weight: 700; color: var(--verde); }
-  h1 { color: var(--verde); }
-  h2 { color: var(--verde); font-size: 18px; }
+  .ponte .destaque { font-size: 19px; font-weight: 700; color: var(--verde); }
+  h1 { color: var(--verde); margin-top: 0; }
+  h2 { color: var(--verde); font-size: 17px; margin-top: 0; }
+  .voltar { display: inline-block; margin-bottom: 14px; color: var(--verde-escuro); font-weight: 600; text-decoration: none; }
+  .voltar:hover { text-decoration: underline; }
+
+  /* ── Calendário (grade de 12 meses) ───────────────────── */
+  .calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .mes-card {
+    background: var(--card);
+    border: 1px solid var(--cinza-borda);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .mes-titulo { font-weight: 800; color: var(--verde-escuro); margin-bottom: 8px; font-size: 15px; }
+  .dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    font-size: 10px;
+    color: #8a938a;
+    text-align: center;
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+  .grade-dias {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+  .dia {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border-radius: 7px;
+    color: #333;
+  }
+  .dia.vazio { visibility: hidden; }
+  .dia.feriado-nacional { background: var(--vermelho); color: #fff; font-weight: 800; }
+  .dia.feriado-estadual { background: var(--verde); color: #fff; font-weight: 800; }
+  .dia.feriado-municipal { background: var(--azul); color: #fff; font-weight: 800; }
+
+  .lista-feriados-mes { margin-top: 10px; border-top: 1px dashed var(--cinza-borda); padding-top: 8px; }
+  .lista-feriados-mes .item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; margin-bottom: 5px; }
+  .lista-feriados-mes .dia-num { font-weight: 800; color: var(--verde-escuro); width: 18px; flex-shrink: 0; }
+  .lista-feriados-mes .nome-feriado { flex: 1; }
+  .lista-feriados-mes .tag { font-size: 9.5px; padding: 1px 7px; }
+  .sem-feriados-mes { font-size: 11.5px; color: #9aa39a; margin-top: 8px; }
+
+  @media (max-width: 860px) {
+    .calendario-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .calendario-grid { grid-template-columns: 1fr; }
+    .header-inner { flex-direction: column; align-items: flex-start; }
+    .controles { width: 100%; }
+    .controles select { flex: 1; }
+  }
 </style>
 </head>
 <body>
-<header><a href="/">📅 Feriados {{ ano }}</a></header>
+<header>
+  <div class="header-inner">
+    <div class="marca">
+      <span class="icone">📅</span>
+      <a href="/">
+        <h1>Feriados {{ ano }}</h1>
+        <p>Calendário brasileiro completo — nacionais, estaduais e municipais</p>
+      </a>
+    </div>
+    <div class="controles">
+      <select id="sel-estado" aria-label="Selecione o estado"
+        onchange="window.location.href = this.value ? '/' + this.value.toLowerCase() + '/' : '/';">
+        <option value="">Selecione o estado</option>
+        {% for e in estados_dropdown %}
+        <option value="{{ e.uf }}" {% if estado and estado.uf == e.uf %}selected{% endif %}>{{ e.nome }}</option>
+        {% endfor %}
+      </select>
+
+      {% if estado %}
+      <select id="sel-cidade" aria-label="Selecione a cidade"
+        onchange="if(this.value){ window.location.href = '/{{ estado.uf.lower() }}/' + this.value + '/'; }">
+        <option value="">Selecione a cidade</option>
+        {% for c in cidades %}
+        <option value="{{ c.slug }}" {% if cidade and cidade.slug == c.slug %}selected{% endif %}>{{ c.nome }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+    </div>
+  </div>
+</header>
 <main>
 {% block content %}{% endblock %}
 </main>
