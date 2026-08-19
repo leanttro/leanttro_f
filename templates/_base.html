@@ -289,6 +289,36 @@
     color: #1a1a1a;
   }
 
+  /* ── Badge da cotação do dólar no header ─────────────────── */
+  .badge-dolar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.35);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+  }
+
+  .badge-dolar:hover {
+    background: rgba(255,255,255,.25);
+  }
+
+  .badge-dolar .bd-label {
+    opacity: .8;
+    font-weight: 500;
+  }
+
+  @media (max-width: 700px) {
+    .badge-dolar .bd-label { display: none; }
+  }
+
   main {
     max-width: 1200px;
     margin: 0 auto;
@@ -1056,6 +1086,12 @@
       </select>
       {% endif %}
     </div>
+    {% if cotacao_header %}
+    <a href="/cotacao-dolar/" class="badge-dolar" title="Ver cotação completa do dólar">
+      <span class="bd-label">Dólar hoje</span>
+      <span>R$ {{ "%.2f"|format(cotacao_header.valor) }}</span>
+    </a>
+    {% endif %}
   </div>
 </header>
 
