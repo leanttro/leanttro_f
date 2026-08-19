@@ -1,19 +1,31 @@
 {% extends "_base.html" %}
 {% block title %}Feriados {{ ano }} em {{ estado.nome }}{% endblock %}
 {% block content %}
-<a class="voltar" href="/">← Todos os estados</a>
-<h1>Feriados {{ ano }} em {{ estado.nome }}</h1>
 
-{% include "_calendario.html" %}
+<a href="/" class="voltar">Todos os estados</a>
 
+<div class="card">
+  <h1>📍 {{ estado.nome }}</h1>
+  <p>Calendário completo de feriados nacionais, estaduais e municipais de {{ estado.nome }} para {{ ano }}, com as melhores oportunidades de emenda pra planejar sua folga.</p>
+</div>
+
+<!-- ── CALENDÁRIO DO ESTADO ─────────────────────────────── -->
+<div class="card">
+  <h2>🗓️ Calendário de Feriados</h2>
+  {% include "_calendario.html" %}
+</div>
+
+<!-- ── SEÇÃO DE EMENDAS/PONTES ──────────────────────────── -->
 {% if pontes %}
 <div class="card">
-  <h2>Melhores emendas de {{ ano }}</h2>
+  <h2>🌉 Melhores Emendas de {{ ano }}</h2>
+  <p>Aproveite esses feriados pra tirar o máximo de descanso gastando o mínimo de dias de férias:</p>
+
   {% for p in pontes %}
   <div class="ponte">
     <div class="destaque">{{ p.feriado.nome }} — {{ p.feriado.data.strftime('%d/%m') }}</div>
     {% if p.tipo_ponte == 'natural' %}
-      <p>Cai em um {{ 'segunda' if p.feriado.data.weekday() == 0 else 'sexta' }}-feira: folga de {{ p.dias_descanso_total }} dias sem gastar nenhum dia de férias.</p>
+      <p>Cai em um {{ 'segunda' if p.feriado.data.weekday() == 0 else 'sexta' }}-feira: folga de <strong>{{ p.dias_descanso_total }} dias</strong> sem gastar nenhum dia de férias.</p>
     {% else %}
       <p>Gastando <strong>{{ p.dias_gastos }} dia</strong> de férias/folga, você emenda <strong>{{ p.dias_descanso_total }} dias</strong> de descanso ({{ p.inicio_descanso.strftime('%d/%m') }} a {{ p.fim_descanso.strftime('%d/%m') }}).</p>
     {% endif %}
@@ -22,8 +34,9 @@
 </div>
 {% endif %}
 
+<!-- ── TODOS OS FERIADOS ─────────────────────────────────── -->
 <div class="card">
-  <h2>Todos os feriados de {{ estado.nome }} em {{ ano }}</h2>
+  <h2>📅 Todos os Feriados de {{ estado.nome }} em {{ ano }}</h2>
   {% for f in feriados %}
   <div class="feriado-item">
     <span>{{ f.data.strftime('%d/%m/%Y') }} — {{ f.nome }}</span>
@@ -32,12 +45,14 @@
   {% endfor %}
 </div>
 
+<!-- ── CIDADES DO ESTADO ─────────────────────────────────── -->
 <div class="card">
-  <h2>Feriados por cidade em {{ estado.nome }}</h2>
+  <h2>🏙️ Feriados por Cidade em {{ estado.nome }}</h2>
   <div class="grid">
     {% for c in cidades %}
-    <a href="/{{ estado.uf.lower() }}/{{ c.slug }}/">{{ c.nome }}</a>
+    <a href="/{{ estado.uf.lower() }}/{{ c.slug }}/">📍 {{ c.nome }}</a>
     {% endfor %}
   </div>
 </div>
+
 {% endblock %}
