@@ -325,7 +325,14 @@ def _buscar_cotacao_dolar():
         _DOLAR_CACHE["dados"] = cotacao
         _DOLAR_CACHE["hora"] = agora
         return cotacao
-    except Exception:
+    except Exception as e:
+        # IMPORTANTE: loga a exceção real (com traceback) nos logs do
+        # container. Sem isso não tem como saber se é timeout, DNS,
+        # bloqueio de rede/firewall ou resposta inesperada da API.
+        # Olhe os logs do Dokploy (aba "Logs" do serviço) procurando
+        # por "Falha ao buscar cotação do dólar" pra ver a causa exata.
+        app.logger.exception("Falha ao buscar cotação do dólar: %s", e)
+
         # Se já tem algo em cache (mesmo vencido), prefere mostrar isso
         # a mostrar erro — cotação de 20 min atrás é melhor que nada.
         if _DOLAR_CACHE["dados"]:
