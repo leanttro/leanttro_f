@@ -318,6 +318,15 @@ _DOLAR_CACHE_PATH = "/tmp/feriados2027_cotacao_dolar_cache.json"
 _DOLAR_CACHE_TTL_SEGUNDOS = 3600         # 60 minutos — a API-fonte (open.er-api.com) só atualiza 1x/dia mesmo
 _DOLAR_RETRY_COOLDOWN_SEGUNDOS = 180     # após falha (ex.: 429), espera 3 min antes de tentar de novo
 
+# Outras moedas mostradas na página /cotacao-dolar/ (convertidas pra BRL
+# usando a mesma resposta da API — não gera nenhuma chamada extra).
+# Chave = código ISO da moeda na resposta da API; valor = nome amigável.
+_OUTRAS_MOEDAS = {
+    "EUR": "Euro",
+    "GBP": "Libra Esterlina",
+    "ARS": "Peso Argentino",
+}
+
 
 def _ler_cache_dolar_disco():
     try:
@@ -368,10 +377,29 @@ def _buscar_cotacao_dolar():
         bruto = resp.json()
         if bruto.get("result") != "success":
             raise ValueError(f"resposta inesperada da API de câmbio: {bruto}")
+
+        rates = bruto["rates"]
+        valor_brl_por_usd = float(rates["BRL"])
+
+        # A API dá tudo em relação a USD (1 USD = X BRL, 1 USD = Y EUR...).
+        # Pra converter outra moeda direto pra BRL: BRL_por_USD / moeda_por_USD.
+        # Ex.: se 1 USD = 5,20 BRL e 1 USD = 0,92 EUR, então 1 EUR = 5,20/0,92 BRL.
+        outras_moedas = []
+        for codigo, nome in _OUTRAS_MOEDAS.items():
+            taxa_moeda_por_usd = rates.get(codigo)
+            if not taxa_moeda_por_usd:
+                continue
+            outras_moedas.append({
+                "codigo": codigo,
+                "nome": nome,
+                "valor": valor_brl_por_usd / float(taxa_moeda_por_usd),
+            })
+
         cotacao = {
             "erro": False,
-            "valor": float(bruto["rates"]["BRL"]),
+            "valor": valor_brl_por_usd,
             "atualizado_em": bruto.get("time_last_update_utc", ""),
+            "outras_moedas": outras_moedas,
         }
         _gravar_cache_dolar_disco({"cotacao": cotacao, "hora": agora, "ultima_falha": None})
         return cotacao
