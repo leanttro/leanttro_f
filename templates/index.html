@@ -1,16 +1,50 @@
 {% extends "_base.html" %}
 {% block content %}
-<h1>Feriados {{ ano }} — calendário e emendas por cidade</h1>
-<p>Escolha seu estado no menu acima pra ver os feriados e as melhores emendas de {{ ano }} da sua cidade.</p>
 
+<!-- ── BUSCA PRINCIPAL ────────────────────────────────────── -->
+<div class="search-hero">
+  <h1>🎉 Encontre os melhores feriados</h1>
+  <p>Busque por estado, cidade ou feriado para planejar suas emendas</p>
+  <input type="text" id="busca-principal" placeholder="Digite um estado, cidade ou feriado..." aria-label="Buscar feriado, estado ou cidade">
+</div>
+
+<!-- ── SEÇÃO DE INFO ─────────────────────────────────────── -->
+<div class="card">
+  <h1>Feriados {{ ano }} — calendário e melhores emendas</h1>
+  <p>Escolha seu estado no menu acima para ver todos os feriados nacionais, estaduais e municipais de {{ ano }}, além das melhores oportunidades de emendas para sua cidade.</p>
+</div>
+
+<!-- ── CALENDÁRIO COMPLETO ───────────────────────────────── -->
 {% include "_calendario.html" %}
 
+<!-- ── SELEÇÃO DE ESTADOS ────────────────────────────────── -->
 <div class="card">
-  <h2>Ou escolha o estado diretamente</h2>
+  <h2>Escolha um estado</h2>
   <div class="grid">
     {% for e in estados %}
-    <a href="/{{ e.uf.lower() }}/">{{ e.nome }}</a>
+    <a href="/{{ e.uf.lower() }}/">
+      📍 {{ e.nome }}
+    </a>
     {% endfor %}
   </div>
 </div>
+
+<script>
+(function() {
+  const inputPrincipal = document.getElementById('busca-principal');
+  
+  if (inputPrincipal) {
+    inputPrincipal.addEventListener('keyup', function(e) {
+      const termo = this.value.toLowerCase().trim();
+      
+      if (e.key === 'Enter' && termo) {
+        // Busca por cidade primeiro (mais específico)
+        // Depois por estado
+        // Você pode implementar uma rota /buscar/{termo} no backend
+        window.location.href = '/buscar/?q=' + encodeURIComponent(termo);
+      }
+    });
+  }
+})();
+</script>
 {% endblock %}
