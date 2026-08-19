@@ -1,0 +1,83 @@
+{% extends "_base.html" %}
+{% block title %}{{ negocio.negocio_nome }} — {{ negocio.categoria_nome }}{% if negocio.cidade_nome %} em {{ negocio.cidade_nome }}{% endif %}{% endblock %}
+{% block description %}{{ negocio.negocio_descricao or (negocio.negocio_nome ~ ' — ' ~ negocio.categoria_nome ~ (' em ' ~ negocio.cidade_nome if negocio.cidade_nome else '') ~ '. Confira endereço, contato e como chegar.') }}{% endblock %}
+{% block og_title %}{{ negocio.negocio_nome }} — {{ negocio.categoria_nome }}{% endblock %}
+{% block og_description %}{{ negocio.negocio_descricao or (negocio.negocio_nome ~ ' — ' ~ negocio.categoria_nome) }}{% endblock %}
+{% block og_image %}{{ negocio.negocio_foto_url or "https://i.imgur.com/dlxIOwA.png" }}{% endblock %}
+{% block twitter_title %}{{ negocio.negocio_nome }} — {{ negocio.categoria_nome }}{% endblock %}
+{% block twitter_description %}{{ negocio.negocio_descricao or (negocio.negocio_nome ~ ' — ' ~ negocio.categoria_nome) }}{% endblock %}
+{% block twitter_image %}{{ negocio.negocio_foto_url or "https://i.imgur.com/dlxIOwA.png" }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{{ json_ld_negocio|safe }}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<nav class="turismo-breadcrumb" aria-label="Breadcrumb">
+  <a href="/turismo/">Turismo</a> <span>/</span>
+  <a href="/turismo/{{ negocio.categoria_slug }}/">{{ negocio.categoria_nome }}</a> <span>/</span>
+  <span>{{ negocio.negocio_nome }}</span>
+</nav>
+
+<div class="card">
+  <div class="negocio-cabecalho">
+    <img class="negocio-foto" src="{{ negocio.negocio_foto_url or 'https://i.imgur.com/dlxIOwA.png' }}" alt="{{ negocio.negocio_nome }}">
+    <div>
+      <span class="tag tag-municipal">{{ negocio.categoria_nome }}</span>
+      <h1 style="margin-top:10px;">{{ negocio.negocio_nome }}</h1>
+      <p class="tc-local" style="font-size:14px;">
+        📍
+        {% if negocio.negocio_endereco %}{{ negocio.negocio_endereco }}{% if negocio.negocio_bairro %}, {{ negocio.negocio_bairro }}{% endif %}{% elif negocio.negocio_bairro %}{{ negocio.negocio_bairro }}{% endif %}
+        {% if negocio.cidade_nome %}{% if negocio.negocio_endereco or negocio.negocio_bairro %} — {% endif %}{{ negocio.cidade_nome }}, {{ negocio.cidade_uf }}{% endif %}
+      </p>
+
+      {% if negocio.negocio_descricao %}
+      <p>{{ negocio.negocio_descricao }}</p>
+      {% endif %}
+
+      <div class="negocio-contatos">
+        {% if negocio.negocio_whatsapp %}
+        <a class="negocio-contato-botao negocio-contato-botao--whatsapp" href="https://wa.me/{{ negocio.negocio_whatsapp }}" target="_blank" rel="noopener">💬 WhatsApp</a>
+        {% endif %}
+        {% if negocio.negocio_telefone %}
+        <a class="negocio-contato-botao" href="tel:{{ negocio.negocio_telefone }}">📞 {{ negocio.negocio_telefone }}</a>
+        {% endif %}
+        {% if negocio.negocio_site_url %}
+        <a class="negocio-contato-botao" href="{{ negocio.negocio_site_url }}" target="_blank" rel="noopener">🌐 Site</a>
+        {% endif %}
+        {% if negocio.negocio_instagram %}
+        <a class="negocio-contato-botao" href="https://instagram.com/{{ negocio.negocio_instagram.lstrip('@') }}" target="_blank" rel="noopener">📷 Instagram</a>
+        {% endif %}
+        {% if negocio.negocio_lat is not none and negocio.negocio_lng is not none %}
+        <a class="negocio-contato-botao" href="https://www.google.com/maps?q={{ negocio.negocio_lat }},{{ negocio.negocio_lng }}" target="_blank" rel="noopener">🗺️ Ver no mapa</a>
+        {% endif %}
+        {% if negocio.cidade_slug %}
+        <a class="negocio-contato-botao" href="/{{ negocio.cidade_uf.lower() }}/{{ negocio.cidade_slug }}/turismo/">Outros negócios em {{ negocio.cidade_nome }}</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if similares %}
+<div class="card">
+  <h2>Outras opções em {{ negocio.categoria_nome }}</h2>
+  <div class="grid-turismo">
+    {% for n in similares %}
+    <a href="/turismo/{{ n.categoria_slug }}/{{ n.negocio_slug }}/" class="turismo-card">
+      <div class="tc-foto" style="background-image:url('{{ n.negocio_foto_url or "https://i.imgur.com/dlxIOwA.png" }}');"></div>
+      <div class="tc-corpo">
+        <div class="tc-categoria">{{ n.categoria_nome }}</div>
+        <h3 class="tc-nome">{{ n.negocio_nome }}</h3>
+        <p class="tc-local">📍 {{ n.negocio_bairro ~ ', ' if n.negocio_bairro else '' }}{{ n.cidade_nome or n.negocio_cidade_texto or '' }}</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "_base.html" %}
+{% block title %}Turismo em {{ cidade.nome }} - {{ estado.uf }} — Guia {{ ano }}{% endblock %}
+{% block description %}Agências de viagem, passeios e outros negócios de turismo em {{ cidade.nome }}, {{ estado.nome }}. Veja o mais perto de você.{% endblock %}
+{% block og_title %}Turismo em {{ cidade.nome }} - {{ estado.uf }}{% endblock %}
+{% block og_description %}Agências de viagem, passeios e outros negócios de turismo em {{ cidade.nome }}, {{ estado.nome }}.{% endblock %}
+{% block twitter_title %}Turismo em {{ cidade.nome }} - {{ estado.uf }}{% endblock %}
+{% block twitter_description %}Agências de viagem, passeios e outros negócios de turismo em {{ cidade.nome }}.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Turismo em {{ cidade.nome }}",
+  "url": "{{ request.url_root.rstrip('/') }}/{{ estado.uf.lower() }}/{{ cidade.slug }}/turismo/",
+  "inLanguage": "pt-BR",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Início", "item": "{{ request.url_root.rstrip('/') }}/"},
+      {"@type": "ListItem", "position": 2, "name": "{{ estado.nome }}", "item": "{{ request.url_root.rstrip('/') }}/{{ estado.uf.lower() }}/"},
+      {"@type": "ListItem", "position": 3, "name": "{{ cidade.nome }}", "item": "{{ request.url_root.rstrip('/') }}/{{ estado.uf.lower() }}/{{ cidade.slug }}/"},
+      {"@type": "ListItem", "position": 4, "name": "Turismo", "item": "{{ request.url_root.rstrip('/') }}/{{ estado.uf.lower() }}/{{ cidade.slug }}/turismo/"}
+    ]
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<a href="/{{ estado.uf.lower() }}/{{ cidade.slug }}/" class="voltar">Ver feriados de {{ cidade.nome }}</a>
+
+<div class="card">
+  <h1>🧭 Turismo em {{ cidade.nome }}</h1>
+  <p>Agências de viagem, passeios e outros negócios locais em {{ cidade.nome }}, {{ estado.nome }}. Veja também a <a href="/turismo/">seção completa de turismo</a> com todas as categorias e cidades.</p>
+</div>
+
+<div class="card">
+  {% include "_turismo_negocios_secao.html" %}
+</div>
+
+{% endblock %}

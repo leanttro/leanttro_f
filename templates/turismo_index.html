@@ -1,0 +1,53 @@
+{% extends "_base.html" %}
+{% block title %}Turismo e Negócios Locais — Guia {{ ano }}{% endblock %}
+{% block description %}Encontre agências de viagem, pousadas, restaurantes e outros negócios locais perto de você. Filtre por categoria ou use sua localização pra achar as opções mais próximas.{% endblock %}
+{% block og_title %}Turismo e Negócios Locais — Guia {{ ano }}{% endblock %}
+{% block og_description %}Encontre agências de viagem, pousadas, restaurantes e outros negócios locais perto de você. Filtre por categoria ou use sua localização.{% endblock %}
+{% block twitter_title %}Turismo e Negócios Locais — Guia {{ ano }}{% endblock %}
+{% block twitter_description %}Encontre agências de viagem, pousadas, restaurantes e outros negócios locais perto de você.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Turismo e Negócios Locais",
+  "url": "{{ request.url_root.rstrip('/') }}/turismo/",
+  "description": "Diretório de negócios locais de turismo, filtrável por categoria e por proximidade.",
+  "inLanguage": "pt-BR",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Início", "item": "{{ request.url_root.rstrip('/') }}/"},
+      {"@type": "ListItem", "position": 2, "name": "Turismo", "item": "{{ request.url_root.rstrip('/') }}/turismo/"}
+    ]
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div class="turismo-hero">
+  <h1>🧭 Turismo e Negócios Locais</h1>
+  <p>Agências de viagem, pousadas, passeios e outros negócios pra planejar sua próxima folga. Filtre por categoria ou use sua localização pra ver o que tem mais perto de você.</p>
+</div>
+
+<div class="card">
+  <h2>Categorias</h2>
+  <div class="grid-categorias">
+    {% for c in categorias %}
+    <a href="/turismo/{{ c.slug }}/" class="categoria-item">
+      {% if c.icone_url %}<img src="{{ c.icone_url }}" alt="">{% endif %}
+      {{ c.nome }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  <h2>Negócios em destaque</h2>
+  {% include "_turismo_negocios_secao.html" %}
+</div>
+
+{% endblock %}

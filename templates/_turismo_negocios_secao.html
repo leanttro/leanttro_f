@@ -1,0 +1,268 @@
+{# ────────────────────────────────────────────────────────────────
+   Seção de negócios do turismo: filtro por categoria (chips),
+   toggle "Ver como" (carrossel/grade) e "perto de mim" (geoloc).
+   Espera no contexto: negocios_json, secao_id, mostrar_filtro,
+   categorias, categoria_ativa, pagina, total_paginas,
+   url_base_paginacao, total_negocios.
+   ──────────────────────────────────────────────────────────────── #}
+
+<div class="turismo-controles-secao">
+
+  {% if mostrar_filtro %}
+  <div class="filtro-turismo" id="filtro-turismo-{{ secao_id }}">
+    <button type="button" class="filtro-turismo-botao" id="filtro-turismo-botao-{{ secao_id }}" aria-expanded="false">
+      🏷️ Categoria: {{ categoria_ativa.nome if categoria_ativa else "Todas as categorias" }}
+      <span aria-hidden="true">▾</span>
+    </button>
+    <div class="filtro-turismo-painel hidden" id="filtro-turismo-painel-{{ secao_id }}" role="menu">
+      <a href="/turismo/" class="chip-categoria {{ 'ativa' if not categoria_ativa else '' }}">Todas</a>
+      {% for c in categorias %}
+      <a href="/turismo/{{ c.slug }}/" class="chip-categoria {{ 'ativa' if categoria_ativa and categoria_ativa.slug == c.slug else '' }}">
+        {% if c.icone_url %}<img src="{{ c.icone_url }}" alt="">{% endif %}
+        {{ c.nome }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div></div>
+  {% endif %}
+
+  <div class="turismo-controles-direita">
+    <button type="button" class="botao-geolocalizacao" id="botao-geo-{{ secao_id }}">
+      📍 Usar minha localização
+    </button>
+
+    <div class="toggle-visualizacao">
+      <span>Ver como:</span>
+      <div class="toggle-visualizacao-botoes">
+        <button type="button" id="botao-carrossel-{{ secao_id }}" class="ativo" aria-label="Ver em carrossel" title="Carrossel">🎠</button>
+        <button type="button" id="botao-grade-{{ secao_id }}" aria-label="Ver em grade" title="Grade">▦</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="turismo-negocios-{{ secao_id }}" data-secao-id="{{ secao_id }}">
+
+  <div class="turismo-carrossel" id="turismo-carrossel-{{ secao_id }}">
+    <button type="button" class="turismo-carrossel-seta turismo-carrossel-seta--prev" id="seta-prev-{{ secao_id }}" aria-label="Anterior">‹</button>
+    <button type="button" class="turismo-carrossel-seta turismo-carrossel-seta--next" id="seta-next-{{ secao_id }}" aria-label="Próximo">›</button>
+    <div class="turismo-carrossel-viewport">
+      <div class="turismo-carrossel-track" id="carrossel-track-{{ secao_id }}"></div>
+    </div>
+    <div class="turismo-carrossel-progresso">
+      <div class="turismo-carrossel-progresso-barra" id="carrossel-progresso-{{ secao_id }}"></div>
+    </div>
+  </div>
+
+  <div class="grid-turismo" id="grid-turismo-{{ secao_id }}" style="display:none;"></div>
+
+  <div class="turismo-secao-vazia" id="turismo-vazio-{{ secao_id }}" style="display:none;">
+    Nenhum negócio encontrado por aqui ainda.
+  </div>
+</div>
+
+{% if total_paginas and total_paginas > 1 %}
+<div class="paginacao">
+  {% if pagina > 1 %}
+  <a href="{{ url_base_paginacao }}?pagina={{ pagina - 1 }}" aria-label="Página anterior">‹</a>
+  {% endif %}
+
+  {% for p in range(1, total_paginas + 1) %}
+    {% if p == 1 or p == total_paginas or (p >= pagina - 1 and p <= pagina + 1) %}
+      {% if p == pagina %}
+      <span class="pagina-atual">{{ p }}</span>
+      {% else %}
+      <a href="{{ url_base_paginacao }}?pagina={{ p }}">{{ p }}</a>
+      {% endif %}
+    {% elif p == pagina - 2 or p == pagina + 2 %}
+      <span class="reticencias">…</span>
+    {% endif %}
+  {% endfor %}
+
+  {% if pagina < total_paginas %}
+  <a href="{{ url_base_paginacao }}?pagina={{ pagina + 1 }}" aria-label="Próxima página">›</a>
+  {% endif %}
+</div>
+{% endif %}
+
+<script>
+(function () {
+  var SECAO_ID = {{ secao_id|tojson }};
+  var NEGOCIOS = {{ negocios_json|safe }};
+  var FOTO_PADRAO = 'https://i.imgur.com/dlxIOwA.png';
+
+  var track = document.getElementById('carrossel-track-' + SECAO_ID);
+  var grid = document.getElementById('grid-turismo-' + SECAO_ID);
+  var vazio = document.getElementById('turismo-vazio-' + SECAO_ID);
+  var carrosselEl = document.getElementById('turismo-carrossel-' + SECAO_ID);
+  var botaoCarrossel = document.getElementById('botao-carrossel-' + SECAO_ID);
+  var botaoGrade = document.getElementById('botao-grade-' + SECAO_ID);
+  var botaoGeo = document.getElementById('botao-geo-' + SECAO_ID);
+  var setaPrev = document.getElementById('seta-prev-' + SECAO_ID);
+  var setaNext = document.getElementById('seta-next-' + SECAO_ID);
+  var progressoBarra = document.getElementById('carrossel-progresso-' + SECAO_ID);
+  var filtroBotao = document.getElementById('filtro-turismo-botao-' + SECAO_ID);
+  var filtroPainel = document.getElementById('filtro-turismo-painel-' + SECAO_ID);
+
+  function haversineKm(lat1, lon1, lat2, lon2) {
+    var R = 6371;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  function criarCard(n) {
+    var a = document.createElement('a');
+    a.className = 'turismo-card';
+    a.href = '/turismo/' + n.categoriaSlug + '/' + n.slug + '/';
+
+    var foto = document.createElement('div');
+    foto.className = 'tc-foto';
+    foto.style.backgroundImage = "url('" + (n.fotoUrl || FOTO_PADRAO) + "')";
+    a.appendChild(foto);
+
+    var corpo = document.createElement('div');
+    corpo.className = 'tc-corpo';
+
+    var categoria = document.createElement('div');
+    categoria.className = 'tc-categoria';
+    categoria.textContent = n.categoriaNome || '';
+    corpo.appendChild(categoria);
+
+    var nome = document.createElement('h3');
+    nome.className = 'tc-nome';
+    nome.textContent = n.nome;
+    corpo.appendChild(nome);
+
+    var local = document.createElement('p');
+    local.className = 'tc-local';
+    var partes = [];
+    if (n.bairro) partes.push(n.bairro);
+    if (n.cidadeNome) partes.push(n.cidadeNome);
+    local.textContent = '📍 ' + (partes.length ? partes.join(', ') : 'Localização não informada');
+    corpo.appendChild(local);
+
+    if (n._distanciaKm != null) {
+      var dist = document.createElement('span');
+      dist.className = 'tc-distancia';
+      dist.textContent = n._distanciaKm.toFixed(1) + ' km';
+      corpo.appendChild(dist);
+    }
+
+    a.appendChild(corpo);
+    return a;
+  }
+
+  function renderizar() {
+    track.innerHTML = '';
+    grid.innerHTML = '';
+
+    if (NEGOCIOS.length === 0) {
+      vazio.style.display = 'block';
+      carrosselEl.style.display = 'none';
+      grid.style.display = 'none';
+      return;
+    }
+    vazio.style.display = 'none';
+
+    NEGOCIOS.forEach(function (n) {
+      track.appendChild(criarCard(n));
+      grid.appendChild(criarCard(n));
+    });
+    atualizarProgresso();
+  }
+
+  function atualizarProgresso() {
+    if (!track.scrollWidth || track.scrollWidth <= track.clientWidth) {
+      progressoBarra.style.width = '100%';
+      return;
+    }
+    var max = track.scrollWidth - track.clientWidth;
+    var pct = Math.min(1, track.scrollLeft / max);
+    var larguraBarra = Math.max(10, (track.clientWidth / track.scrollWidth) * 100);
+    progressoBarra.style.width = larguraBarra + '%';
+    progressoBarra.style.transform = 'translateX(' + (pct * (100 / larguraBarra - 1) * 100) + '%)';
+  }
+
+  track.addEventListener('scroll', atualizarProgresso);
+
+  setaPrev.addEventListener('click', function () {
+    track.scrollBy({ left: -260, behavior: 'smooth' });
+  });
+  setaNext.addEventListener('click', function () {
+    track.scrollBy({ left: 260, behavior: 'smooth' });
+  });
+
+  // ── Toggle "Ver como" ────────────────────────────────────
+  botaoCarrossel.addEventListener('click', function () {
+    botaoCarrossel.classList.add('ativo');
+    botaoGrade.classList.remove('ativo');
+    carrosselEl.style.display = NEGOCIOS.length ? '' : 'none';
+    grid.style.display = 'none';
+  });
+
+  botaoGrade.addEventListener('click', function () {
+    botaoGrade.classList.add('ativo');
+    botaoCarrossel.classList.remove('ativo');
+    carrosselEl.style.display = 'none';
+    grid.style.display = NEGOCIOS.length ? 'grid' : 'none';
+  });
+
+  // ── Painel de filtro por categoria (chips) ──────────────
+  if (filtroBotao && filtroPainel) {
+    filtroBotao.addEventListener('click', function () {
+      var abrindo = filtroPainel.classList.contains('hidden');
+      filtroPainel.classList.toggle('hidden');
+      filtroBotao.setAttribute('aria-expanded', abrindo ? 'true' : 'false');
+    });
+    document.addEventListener('click', function (e) {
+      if (!filtroPainel.contains(e.target) && e.target !== filtroBotao) {
+        filtroPainel.classList.add('hidden');
+        filtroBotao.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  // ── Geolocalização: ordena por distância (carrossel + grade) ──
+  botaoGeo.addEventListener('click', function () {
+    if (!('geolocation' in navigator)) {
+      botaoGeo.textContent = '📍 Geolocalização indisponível';
+      botaoGeo.disabled = true;
+      return;
+    }
+    botaoGeo.textContent = '📍 Buscando localização...';
+    botaoGeo.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+
+      NEGOCIOS.forEach(function (n) {
+        n._distanciaKm = (n.lat != null && n.lng != null)
+          ? haversineKm(lat, lng, n.lat, n.lng)
+          : null;
+      });
+
+      NEGOCIOS.sort(function (a, b) {
+        if (a._distanciaKm == null) return 1;
+        if (b._distanciaKm == null) return -1;
+        return a._distanciaKm - b._distanciaKm;
+      });
+
+      botaoGeo.textContent = '📍 Ordenado por distância';
+      renderizar();
+    }, function () {
+      botaoGeo.textContent = '📍 Não foi possível obter localização';
+      botaoGeo.disabled = false;
+    }, { timeout: 8000 });
+  });
+
+  renderizar();
+})();
+</script>

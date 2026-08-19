@@ -1,0 +1,48 @@
+{% extends "_base.html" %}
+{% block title %}{{ categoria.nome }} — Turismo {{ ano }}{% endblock %}
+{% block description %}Confira {{ categoria.nome|lower }} perto de você. Filtre por proximidade usando sua localização e encontre as melhores opções pra sua viagem.{% endblock %}
+{% block og_title %}{{ categoria.nome }} — Turismo {{ ano }}{% endblock %}
+{% block og_description %}Confira {{ categoria.nome|lower }} perto de você. Filtre por proximidade e encontre as melhores opções.{% endblock %}
+{% block twitter_title %}{{ categoria.nome }} — Turismo {{ ano }}{% endblock %}
+{% block twitter_description %}Confira {{ categoria.nome|lower }} perto de você.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "{{ categoria.nome }} — Turismo",
+  "url": "{{ request.url_root.rstrip('/') }}/turismo/{{ categoria.slug }}/",
+  "description": "Diretório de negócios da categoria {{ categoria.nome }}.",
+  "inLanguage": "pt-BR",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Início", "item": "{{ request.url_root.rstrip('/') }}/"},
+      {"@type": "ListItem", "position": 2, "name": "Turismo", "item": "{{ request.url_root.rstrip('/') }}/turismo/"},
+      {"@type": "ListItem", "position": 3, "name": "{{ categoria.nome }}", "item": "{{ request.url_root.rstrip('/') }}/turismo/{{ categoria.slug }}/"}
+    ]
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<nav class="turismo-breadcrumb" aria-label="Breadcrumb">
+  <a href="/turismo/">Turismo</a> <span>/</span> <span>{{ categoria.nome }}</span>
+</nav>
+
+<div class="card">
+  <h1>
+    {% if categoria.icone_url %}<img src="{{ categoria.icone_url }}" alt="" style="width:28px;height:28px;vertical-align:-6px;object-fit:contain;">{% endif %}
+    {{ categoria.nome }}
+  </h1>
+  <p>{{ total_negocios }} negócio{{ 's' if total_negocios != 1 else '' }} nessa categoria. Filtre por proximidade usando sua localização, ou navegue pelas outras categorias abaixo.</p>
+</div>
+
+<div class="card">
+  {% include "_turismo_negocios_secao.html" %}
+</div>
+
+{% endblock %}
