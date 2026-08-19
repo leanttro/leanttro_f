@@ -41,6 +41,18 @@
   <p style="margin-top: 18px; font-size: 13px; color: var(--texto-claro);">
     Atualizado em: {{ cotacao.atualizado_em }} · Fonte: ExchangeRate-API
   </p>
+
+  {% if cotacao.outras_moedas %}
+  <h2 style="font-size: 15px; margin-top: 28px; margin-bottom: 10px; color: var(--texto);">Outras moedas em reais</h2>
+  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+    {% for moeda in cotacao.outras_moedas %}
+    <div style="background: var(--azul-claro); border-radius: 12px; padding: 16px; text-align: center;">
+      <div style="font-size: 12px; color: var(--texto-claro); font-weight: 600; text-transform: uppercase;">{{ moeda.nome }}</div>
+      <div style="font-size: 22px; font-weight: 800; color: var(--azul-escuro);">R$ {{ "%.4f"|format(moeda.valor) }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   {% endif %}
 </div>
 
