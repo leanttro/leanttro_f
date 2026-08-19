@@ -204,8 +204,11 @@ def _cidades_do_estado(uf):
 def index():
     estados = query("SELECT feriado_estado_uf AS uf, feriado_estado_nome AS nome FROM feriado_estados ORDER BY feriado_estado_nome")
 
+    # Inclui descricao_seo aqui também — antes só vinha nome/data/tipo,
+    # e por isso o popover de descrição não tinha o que mostrar na home.
     feriados_nacionais = query("""
-        SELECT feriado_nome AS nome, feriado_data AS data, feriado_tipo AS tipo
+        SELECT feriado_nome AS nome, feriado_data AS data, feriado_tipo AS tipo,
+               feriado_descricao_seo AS descricao_seo
         FROM feriado_feriados
         WHERE feriado_ano = %s AND feriado_tipo = 'nacional'
         ORDER BY feriado_data
