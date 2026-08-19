@@ -32,6 +32,8 @@ TIPO_LABEL = {
     "nacional": "Nacional",
     "estadual": "Estadual",
     "municipal": "Municipal",
+    "ponto_facultativo": "Ponto Facultativo",
+    "comemorativa": "Data Comemorativa",
 }
 
 
@@ -182,6 +184,8 @@ def _feriados_da_cidade(ibge_code, uf, ano):
         FROM feriado_feriados
         WHERE feriado_ano = %s AND (
             feriado_tipo = 'nacional'
+            OR feriado_tipo = 'ponto_facultativo'
+            OR feriado_tipo = 'comemorativa'
             OR (feriado_tipo = 'estadual' AND feriado_uf = %s)
             OR (feriado_tipo = 'municipal' AND feriado_ibge_code = %s)
         )
@@ -210,7 +214,11 @@ def index():
         SELECT feriado_nome AS nome, feriado_data AS data, feriado_tipo AS tipo,
                feriado_descricao_seo AS descricao_seo
         FROM feriado_feriados
-        WHERE feriado_ano = %s AND feriado_tipo = 'nacional'
+        WHERE feriado_ano = %s AND (
+            feriado_tipo = 'nacional'
+            OR feriado_tipo = 'ponto_facultativo'
+            OR feriado_tipo = 'comemorativa'
+        )
         ORDER BY feriado_data
     """, (ANO_PRINCIPAL,))
 
@@ -235,7 +243,12 @@ def pagina_estado(uf):
         SELECT feriado_nome AS nome, feriado_data AS data, feriado_tipo AS tipo,
                feriado_descricao_seo AS descricao_seo
         FROM feriado_feriados
-        WHERE feriado_ano = %s AND (feriado_tipo = 'nacional' OR (feriado_tipo = 'estadual' AND feriado_uf = %s))
+        WHERE feriado_ano = %s AND (
+            feriado_tipo = 'nacional'
+            OR feriado_tipo = 'ponto_facultativo'
+            OR feriado_tipo = 'comemorativa'
+            OR (feriado_tipo = 'estadual' AND feriado_uf = %s)
+        )
         ORDER BY feriado_data
     """, (ANO_PRINCIPAL, uf))
     pontes = _pontes_do_ano(feriados, ANO_PRINCIPAL)
