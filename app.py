@@ -1,19 +1,27 @@
 # ════════════════════════════════════════════════════════════
-#  app.py — feriados2027.com.br [VERSÃO CORRIGIDA]
+#  app.py — feriados2027.com.br [VERSÃO COM CALCULADORA DE FÉRIAS + DÓLAR]
 #  App Flask INDEPENDENTE (processo/deploy próprio).
 #  Banco COMPARTILHADO ("metro"), mas só mexe em tabelas com
 #  prefixo feriado_ — nunca toca em nada de outro projeto.
 #
 #  Variáveis de ambiente esperadas (.env):
 #      DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS
+#
+#  NOVO NESTA VERSÃO:
+#  - Calculadora de férias: /calculadora-ferias/ (nacional) e
+#    /<uf>/calculadora-ferias/ (por estado, com feriados estaduais)
+#  - Cotação de dólar: /cotacao-dolar/ (AwesomeAPI, cache de 10 min)
+#  - Dependência nova: requests (adicionar no requirements.txt)
 # ════════════════════════════════════════════════════════════
 
 import calendar as calendar_lib
+import time
 from flask import Flask, render_template, g, abort, request, redirect, jsonify, Response
 from datetime import date, timedelta
 import os
 import psycopg2
 import psycopg2.extras
+import requests
 from dotenv import load_dotenv
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -30,6 +38,9 @@ ANO_PRINCIPAL = 2027  # ano em foco do projeto — usado como default nas págin
 # Domínio usado no sitemap.xml e no robots.txt. Pode ser sobrescrito
 # via variável de ambiente BASE_URL no .env, se precisar.
 BASE_URL = os.getenv("BASE_URL", "https://www.feriados2027.com.br").rstrip("/")
+
+# Opções de dias de férias oferecidas na calculadora (dropdown/botões)
+DIAS_FERIAS_OPCOES = [5, 10, 15, 20, 30]
 
 
 @app.before_request
@@ -157,7 +168,7 @@ def gerar_calendario(ano, feriados):
     return meses
 
 
-# ── Calculadora de emenda ────────────────────────────────────
+# ── Calculadora de emenda (pontes simples, já existente) ──────
 
 def _pontes_do_ano(feriados, ano):
     oportunidades = []
@@ -207,6 +218,119 @@ def _pontes_do_ano(feriados, ano):
 
     oportunidades.sort(key=lambda o: o["feriado"]["data"])
     return oportunidades
+
+
+# ── NOVO: Calculadora de férias (combinação ótima de dias) ────
+# Estende o motor de pontes: em vez de olhar só 1 feriado por vez,
+# varre o ano inteiro e acha os MELHORES períodos contínuos de
+# descanso possíveis pra um orçamento de N dias de férias.
+#
+# Lógica: cada dia do ano é "livre" (fim de semana ou feriado) ou
+# "útil" (dia que, se tirado de férias, é gasto do orçamento).
+# Pra cada dia de início possível, estica o período o máximo que dá
+# sem estourar o orçamento de N dias úteis gastos — é uma janela
+# deslizante. No fim, pega os melhores períodos sem sobreposição.
+
+def _dias_livres_do_ano(feriados, ano):
+    """Set de todas as datas do ano que são fim de semana OU feriado."""
+    feriado_datas = {f["data"] for f in feriados}
+    livres = set()
+    d = date(ano, 1, 1)
+    fim_ano = date(ano, 12, 31)
+    while d <= fim_ano:
+        if d.weekday() >= 5 or d in feriado_datas:  # 5=sábado, 6=domingo
+            livres.add(d)
+        d += timedelta(days=1)
+    return livres
+
+
+def _melhores_periodos_ferias(feriados, ano, n_dias, max_resultados=5):
+    """Devolve até `max_resultados` períodos contínuos (sem sobreposição
+    entre eles) que maximizam o total de dias de descanso gastando no
+    máximo `n_dias` dias úteis de férias em cada um."""
+    livres = _dias_livres_do_ano(feriados, ano)
+    inicio_ano = date(ano, 1, 1)
+    total_dias = (date(ano, 12, 31) - inicio_ano).days + 1
+    dias = [inicio_ano + timedelta(days=i) for i in range(total_dias)]
+
+    candidatos = []
+    for i in range(total_dias):
+        gastos = 0
+        j = i
+        while j < total_dias:
+            if dias[j] not in livres:
+                if gastos + 1 > n_dias:
+                    break
+                gastos += 1
+            j += 1
+        fim_idx = j - 1
+        if fim_idx < i:
+            continue
+        candidatos.append({
+            "inicio": dias[i],
+            "fim": dias[fim_idx],
+            "dias_gastos": gastos,
+            "dias_descanso_total": fim_idx - i + 1,
+        })
+
+    # Maior descanso primeiro; empatado, o que gasta menos dias de férias.
+    candidatos.sort(key=lambda c: (c["dias_descanso_total"], -c["dias_gastos"]), reverse=True)
+
+    selecionados = []
+    for c in candidatos:
+        sobrepoe = any(
+            c["inicio"] <= s["fim"] and c["fim"] >= s["inicio"]
+            for s in selecionados
+        )
+        if not sobrepoe:
+            selecionados.append(c)
+        if len(selecionados) >= max_resultados:
+            break
+
+    selecionados.sort(key=lambda c: c["inicio"])
+    return selecionados
+
+
+# ── NOVO: Cotação de dólar (AwesomeAPI, com cache em memória) ─
+# Cache simples de 10 min: evita bater na API a cada request e
+# deixa a página rápida mesmo sob tráfego. Se a API falhar, devolve
+# {"erro": True} e o template mostra uma mensagem de fallback em vez
+# de quebrar a página.
+
+_DOLAR_CACHE = {"dados": None, "hora": 0}
+_DOLAR_CACHE_TTL_SEGUNDOS = 600  # 10 minutos
+
+
+def _buscar_cotacao_dolar():
+    agora = time.time()
+    if _DOLAR_CACHE["dados"] and (agora - _DOLAR_CACHE["hora"] < _DOLAR_CACHE_TTL_SEGUNDOS):
+        return _DOLAR_CACHE["dados"]
+
+    try:
+        resp = requests.get(
+            "https://economia.awesomeapi.com.br/json/last/USD-BRL",
+            timeout=5,
+        )
+        resp.raise_for_status()
+        bruto = resp.json()["USDBRL"]
+        cotacao = {
+            "erro": False,
+            "compra": float(bruto["bid"]),
+            "venda": float(bruto["ask"]),
+            "variacao_pct": float(bruto["pctChange"]),
+            "maxima": float(bruto["high"]),
+            "minima": float(bruto["low"]),
+            "atualizado_em": bruto["create_date"],  # "2027-01-05 14:32:10"
+        }
+        _DOLAR_CACHE["dados"] = cotacao
+        _DOLAR_CACHE["hora"] = agora
+        return cotacao
+    except Exception:
+        # Se já tem algo em cache (mesmo vencido), prefere mostrar isso
+        # a mostrar erro — cotação de 20 min atrás é melhor que nada.
+        if _DOLAR_CACHE["dados"]:
+            return _DOLAR_CACHE["dados"]
+        return {"erro": True}
 
 
 def _feriados_da_cidade(ibge_code, uf, ano):
@@ -419,6 +543,105 @@ def api_autocomplete_cidades(uf):
     return jsonify({"resultados": resultados})
 
 
+# ── NOVO: Calculadora de férias — nacional ─────────────────────
+# IMPORTANTE: essa rota precisa estar registrada ANTES de qualquer
+# rota genérica /<algo>/ que possa colidir — mas como "calculadora-
+# -ferias" e "cotacao-dolar" são segmentos ESTÁTICOS (sem <variável>),
+# o Werkzeug já prioriza eles automaticamente sobre /<uf>/, então a
+# ordem de registro aqui não importa na prática. Deixei nesta posição
+# só por organização.
+
+@app.route("/calculadora-ferias/")
+def calculadora_ferias():
+    n_dias = request.args.get("dias", default=10, type=int)
+    if n_dias not in DIAS_FERIAS_OPCOES:
+        n_dias = 10
+
+    # Escopo nacional: só feriados que valem em todo o Brasil.
+    feriados = query("""
+        SELECT feriado_nome AS nome, feriado_data AS data, feriado_tipo AS tipo,
+               feriado_descricao_seo AS descricao_seo
+        FROM feriado_feriados
+        WHERE feriado_ano = %s AND feriado_tipo IN ('nacional', 'ponto_facultativo')
+        ORDER BY feriado_data
+    """, (ANO_PRINCIPAL,))
+
+    periodos = _melhores_periodos_ferias(feriados, ANO_PRINCIPAL, n_dias)
+
+    return render_template(
+        "calculadora_ferias.html",
+        ano=ANO_PRINCIPAL,
+        n_dias=n_dias,
+        dias_opcoes=DIAS_FERIAS_OPCOES,
+        periodos=periodos,
+        estado=None,
+        escopo_nome="Brasil",
+    )
+
+
+# ── NOVO: Calculadora de férias — por estado ───────────────────
+
+@app.route("/<uf>/calculadora-ferias/")
+def calculadora_ferias_estado(uf):
+    uf = uf.upper()
+    estado = query(
+        "SELECT feriado_estado_uf AS uf, feriado_estado_nome AS nome FROM feriado_estados WHERE feriado_estado_uf = %s",
+        (uf,), one=True,
+    )
+    if not estado:
+        abort(404)
+
+    n_dias = request.args.get("dias", default=10, type=int)
+    if n_dias not in DIAS_FERIAS_OPCOES:
+        n_dias = 10
+
+    # Nacional + estadual do UF (mesma regra usada na página de estado).
+    feriados = query("""
+        SELECT feriado_nome AS nome, feriado_data AS data, feriado_tipo AS tipo,
+               feriado_descricao_seo AS descricao_seo
+        FROM feriado_feriados
+        WHERE feriado_ano = %s AND (
+            feriado_tipo IN ('nacional', 'ponto_facultativo')
+            OR (feriado_tipo = 'estadual' AND feriado_uf = %s)
+        )
+        ORDER BY feriado_data
+    """, (ANO_PRINCIPAL, uf))
+
+    cidades = _cidades_do_estado(uf)
+    periodos = _melhores_periodos_ferias(feriados, ANO_PRINCIPAL, n_dias)
+
+    return render_template(
+        "calculadora_ferias.html",
+        ano=ANO_PRINCIPAL,
+        n_dias=n_dias,
+        dias_opcoes=DIAS_FERIAS_OPCOES,
+        periodos=periodos,
+        estado=estado,
+        cidades=cidades,
+        escopo_nome=estado["nome"],
+    )
+
+
+# ── NOVO: Cotação de dólar ──────────────────────────────────────
+
+@app.route("/cotacao-dolar/")
+def cotacao_dolar():
+    cotacao = _buscar_cotacao_dolar()
+    return render_template(
+        "cotacao_dolar.html",
+        ano=ANO_PRINCIPAL,
+        cotacao=cotacao,
+        hoje=date.today(),
+    )
+
+
+@app.route("/api/cotacao-dolar/")
+def api_cotacao_dolar():
+    """Endpoint JSON puro da cotação — dá pra usar depois num widget
+    fixo no header, ou em outras páginas, sem duplicar a chamada à API."""
+    return jsonify(_buscar_cotacao_dolar())
+
+
 @app.route("/<uf>/")
 def pagina_estado(uf):
     uf = uf.upper()
@@ -490,16 +713,23 @@ def pagina_cidade(uf, cidade_slug):
 @app.route("/sitemap.xml")
 def sitemap():
     """Sitemap gerado dinamicamente a partir do banco: home + todas
-    as páginas de estado + todas as páginas de cidade. Envie essa URL
-    (BASE_URL/sitemap.xml) pro Google Search Console."""
+    as páginas de estado + todas as páginas de cidade + calculadora
+    de férias (nacional e por estado) + cotação de dólar. Envie essa
+    URL (BASE_URL/sitemap.xml) pro Google Search Console."""
     hoje = date.today().isoformat()
 
     urls = [{"loc": f"{BASE_URL}/", "changefreq": "daily", "priority": "1.0", "lastmod": hoje}]
+
+    # NOVO: calculadora de férias nacional + cotação de dólar
+    urls.append({"loc": f"{BASE_URL}/calculadora-ferias/", "changefreq": "weekly", "priority": "0.9", "lastmod": hoje})
+    urls.append({"loc": f"{BASE_URL}/cotacao-dolar/", "changefreq": "daily", "priority": "0.7", "lastmod": hoje})
 
     estados = query("SELECT feriado_estado_uf AS uf FROM feriado_estados ORDER BY feriado_estado_uf")
     for e in estados:
         uf = e["uf"].lower()
         urls.append({"loc": f"{BASE_URL}/{uf}/", "changefreq": "weekly", "priority": "0.8", "lastmod": hoje})
+        # NOVO: calculadora de férias por estado
+        urls.append({"loc": f"{BASE_URL}/{uf}/calculadora-ferias/", "changefreq": "weekly", "priority": "0.7", "lastmod": hoje})
 
     cidades = query(
         """SELECT feriado_municipio_uf AS uf, feriado_municipio_slug AS slug
