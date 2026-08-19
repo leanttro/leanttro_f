@@ -1,7 +1,8 @@
 {% extends "_base.html" %}
+{% block title %}Feriados {{ ano }} em {{ cidade.nome }} - {{ cidade.uf }}{% endblock %}
 {% block content %}
 
-<a href="/{{ estado.uf.lower() }}/" class="voltar">Voltar para {{ estado.nome }}</a>
+<a href="/{{ estado.uf.lower() }}/" class="voltar">Ver todos os feriados de {{ estado.nome }}</a>
 
 <div class="card">
   <h1>🏙️ {{ cidade.nome }}, {{ estado.nome }}</h1>
@@ -10,44 +11,41 @@
 
 <!-- ── CALENDÁRIO DA CIDADE ─────────────────────────────── -->
 <div class="card">
-  <h2>Calendário de Feriados</h2>
+  <h2>🗓️ Calendário de Feriados</h2>
   {% include "_calendario.html" %}
 </div>
 
 <!-- ── SEÇÃO DE EMENDAS/PONTES ──────────────────────────── -->
-{% if feriados_ponte %}
+{% if pontes %}
 <div class="card">
   <h2>🌉 Melhores Emendas em {{ ano }}</h2>
   <p>Veja as oportunidades de fazer ponte e aproveitar feriados com menos dias tirados:</p>
-  
-  {% for emenda in feriados_ponte %}
+
+  {% for p in pontes %}
   <div class="ponte">
-    <div class="destaque">{{ emenda.dias_totais }} dias → {{ emenda.dias_tirados }} dias de trabalho</div>
-    <p style="margin: 8px 0;">
-      <strong>{{ emenda.data_inicio }} a {{ emenda.data_fim }}</strong><br>
-      {{ emenda.descricao }}
-    </p>
+    <div class="destaque">{{ p.feriado.nome }} — {{ p.feriado.data.strftime('%d/%m') }}</div>
+    {% if p.tipo_ponte == 'natural' %}
+      <p>Cai em um {{ 'segunda' if p.feriado.data.weekday() == 0 else 'sexta' }}-feira: folga de <strong>{{ p.dias_descanso_total }} dias</strong> sem gastar nenhum dia de férias.</p>
+    {% else %}
+      <p>Gastando <strong>{{ p.dias_gastos }} dia</strong> de férias/folga, você emenda <strong>{{ p.dias_descanso_total }} dias</strong> de descanso ({{ p.inicio_descanso.strftime('%d/%m') }} a {{ p.fim_descanso.strftime('%d/%m') }}).</p>
+    {% endif %}
   </div>
   {% endfor %}
 </div>
 {% endif %}
 
-<!-- ── FERIADOS MUNICIPAIS ───────────────────────────────– -->
-{% if feriados_municipais %}
+<!-- ── TODOS OS FERIADOS ─────────────────────────────────── -->
 <div class="card">
-  <h2>📅 Feriados Municipais</h2>
-  <p>Feriados específicos de {{ cidade.nome }}:</p>
-  
-  {% for f in feriados_municipais %}
+  <h2>📅 Todos os Feriados de {{ cidade.nome }} em {{ ano }}</h2>
+  {% for f in feriados %}
   <div class="feriado-item">
-    <span><strong>{{ f.data }}</strong> — {{ f.nome }}</span>
-    <span class="tag tag-{{ f.tipo }}">{{ f.tipo_label }}</span>
+    <span>{{ f.data.strftime('%d/%m/%Y') }} — {{ f.nome }}</span>
+    <span class="tag tag-{{ f.tipo }}">{{ tipo_label[f.tipo] }}</span>
   </div>
   {% endfor %}
 </div>
-{% endif %}
 
-<!-- ── LEGENDA DE CORES ──────────────────────────────────– -->
+<!-- ── LEGENDA DE CORES ──────────────────────────────────── -->
 <div class="card">
   <h2>📌 Legenda de Cores</h2>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
@@ -58,7 +56,7 @@
         <p style="margin: 0; font-size: 12px; color: #666;">Feriado em todo Brasil</p>
       </div>
     </div>
-    
+
     <div style="display: flex; align-items: center; gap: 10px;">
       <div style="width: 30px; height: 30px; background: linear-gradient(135deg, rgba(32, 201, 151, 0.3), rgba(32, 201, 151, 0.15)); border-radius: 8px;"></div>
       <div>
@@ -66,7 +64,7 @@
         <p style="margin: 0; font-size: 12px; color: #666;">Feriado de {{ estado.nome }}</p>
       </div>
     </div>
-    
+
     <div style="display: flex; align-items: center; gap: 10px;">
       <div style="width: 30px; height: 30px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 8px;"></div>
       <div>
@@ -74,7 +72,7 @@
         <p style="margin: 0; font-size: 12px; color: #666;">Feriado de {{ cidade.nome }}</p>
       </div>
     </div>
-    
+
     <div style="display: flex; align-items: center; gap: 10px;">
       <div style="width: 30px; height: 30px; background: linear-gradient(135deg, #f3e8ff, #e9d5ff); border-radius: 8px;"></div>
       <div>
@@ -82,7 +80,7 @@
         <p style="margin: 0; font-size: 12px; color: #666;">Adesão facultativa</p>
       </div>
     </div>
-    
+
     <div style="display: flex; align-items: center; gap: 10px;">
       <div style="width: 30px; height: 30px; background: linear-gradient(135deg, #fed7aa, #fdba74); border-radius: 8px;"></div>
       <div>
