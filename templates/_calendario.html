@@ -1,3 +1,4 @@
+{% set local_calendario = (cidade.nome + ', ' + estado.uf) if cidade else (estado.nome if estado else 'Brasil') %}
 <div class="card">
   <h2>Calendário de Feriados {{ ano }}{% if cidade %} em {{ cidade.nome }} - {{ estado.uf }}{% elif estado %} em {{ estado.nome }}{% endif %}</h2>
   <div class="calendario-grid">
@@ -15,7 +16,21 @@
           {% if dia is none %}
           <div class="dia vazio"></div>
           {% elif dia.feriados %}
-          <div class="dia feriado-{{ dia.feriados[0].tipo }}" title="{{ dia.feriados | map(attribute='nome') | join(' / ') }}">{{ dia.dia }}</div>
+          <div class="dia-cell">
+            <button type="button" class="dia feriado-{{ dia.feriados[0].tipo }}" aria-haspopup="true" aria-expanded="false">{{ dia.dia }}</button>
+            <div class="feriado-dados" hidden>
+              {% for f in dia.feriados %}
+              <div class="feriado-info">
+                <span class="fp-tag tag-{{ f.tipo }}">{{ tipo_label[f.tipo] }}</span>
+                <h4 class="fp-nome">{{ f.nome }}</h4>
+                {% if f.descricao_seo %}
+                <p class="fp-desc">{{ f.descricao_seo }}</p>
+                {% endif %}
+                <div class="fp-local">📍 {{ local_calendario }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
           {% else %}
           <div class="dia">{{ dia.dia }}</div>
           {% endif %}
