@@ -1,0 +1,12 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>Feriados {{ ano }} — calendário e emendas por cidade</h1>
+<p>Escolha seu estado pra ver os feriados e as melhores emendas de {{ ano }}.</p>
+<div class="card">
+  <div class="grid">
+    {% for e in estados %}
+    <a href="/{{ e.uf.lower() }}/">{{ e.nome }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

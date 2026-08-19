@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Feriados {{ ano }}{% endblock %}</title>
+<style>
+  :root {
+    --verde: #035105;
+    --verde-claro: #def8c3;
+    --texto: #1a1a1a;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--verde-claro);
+    color: var(--texto);
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: var(--verde);
+    color: #fff;
+    padding: 16px 20px;
+  }
+  header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+  main { max-width: 860px; margin: 0 auto; padding: 20px; }
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .grid a {
+    display: block;
+    background: var(--card);
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--verde);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+  .feriado-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--verde-claro); color: var(--verde); font-weight: 600; }
+  .ponte { border-left: 4px solid var(--verde); padding-left: 12px; margin-bottom: 14px; }
+  .ponte .destaque { font-size: 20px; font-weight: 700; color: var(--verde); }
+  h1 { color: var(--verde); }
+  h2 { color: var(--verde); font-size: 18px; }
+</style>
+</head>
+<body>
+<header><a href="/">📅 Feriados {{ ano }}</a></header>
+<main>
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>
