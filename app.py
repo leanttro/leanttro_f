@@ -9,7 +9,7 @@
 # ════════════════════════════════════════════════════════════
 
 import calendar as calendar_lib
-from flask import Flask, render_template, g, abort, request, redirect, jsonify
+from flask import Flask, render_template, g, abort, request, redirect, jsonify, Response
 from datetime import date, timedelta
 import os
 import psycopg2
@@ -22,6 +22,10 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 ANO_PRINCIPAL = 2027  # ano em foco do projeto — usado como default nas páginas
+
+# Domínio usado no sitemap.xml e no robots.txt. Pode ser sobrescrito
+# via variável de ambiente BASE_URL no .env, se precisar.
+BASE_URL = os.getenv("BASE_URL", "https://feriados2027.com.br").rstrip("/")
 
 MESES_NOMES = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -404,6 +408,62 @@ def pagina_cidade(uf, cidade_slug):
         feriados=feriados, pontes=pontes, ano=ANO_PRINCIPAL,
         calendario=calendario,
     )
+
+
+# ── SEO técnico: sitemap.xml e robots.txt ─────────────────────
+
+@app.route("/sitemap.xml")
+def sitemap():
+    """Sitemap gerado dinamicamente a partir do banco: home + todas
+    as páginas de estado + todas as páginas de cidade. Envie essa URL
+    (BASE_URL/sitemap.xml) pro Google Search Console."""
+    hoje = date.today().isoformat()
+
+    urls = [{"loc": f"{BASE_URL}/", "changefreq": "daily", "priority": "1.0", "lastmod": hoje}]
+
+    estados = query("SELECT feriado_estado_uf AS uf FROM feriado_estados ORDER BY feriado_estado_uf")
+    for e in estados:
+        uf = e["uf"].lower()
+        urls.append({"loc": f"{BASE_URL}/{uf}/", "changefreq": "weekly", "priority": "0.8", "lastmod": hoje})
+
+    cidades = query(
+        """SELECT feriado_municipio_uf AS uf, feriado_municipio_slug AS slug
+           FROM feriado_municipios ORDER BY feriado_municipio_uf, feriado_municipio_slug"""
+    )
+    for c in cidades:
+        uf = c["uf"].lower()
+        urls.append({
+            "loc": f"{BASE_URL}/{uf}/{c['slug']}/",
+            "changefreq": "weekly",
+            "priority": "0.6",
+            "lastmod": hoje,
+        })
+
+    xml_parts = ['<?xml version="1.0" encoding="UTF-8"?>',
+                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for u in urls:
+        xml_parts.append(
+            "<url>"
+            f"<loc>{u['loc']}</loc>"
+            f"<lastmod>{u['lastmod']}</lastmod>"
+            f"<changefreq>{u['changefreq']}</changefreq>"
+            f"<priority>{u['priority']}</priority>"
+            "</url>"
+        )
+    xml_parts.append("</urlset>")
+
+    return Response("".join(xml_parts), mimetype="application/xml")
+
+
+@app.route("/robots.txt")
+def robots():
+    """robots.txt simples, liberando tudo pro Google e apontando pro sitemap."""
+    conteudo = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        f"Sitemap: {BASE_URL}/sitemap.xml\n"
+    )
+    return Response(conteudo, mimetype="text/plain")
 
 
 if __name__ == "__main__":
