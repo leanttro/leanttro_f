@@ -1,5 +1,5 @@
 # ════════════════════════════════════════════════════════════
-#  app.py — feriados2027.com.br
+#  app.py — feriados2027.com.br [VERSÃO CORRIGIDA]
 #  App Flask INDEPENDENTE (processo/deploy próprio).
 #  Banco COMPARTILHADO ("metro"), mas só mexe em tabelas com
 #  prefixo feriado_ — nunca toca em nada de outro projeto.
@@ -370,6 +370,53 @@ def api_autocomplete():
         })
 
     return jsonify({"resultados": sugestoes[:10]})
+
+
+@app.route("/api/autocomplete_cidades/<uf>")
+def api_autocomplete_cidades(uf):
+    """Autocomplete de cidades dentro de um estado específico.
+    Usado na página de estado pra filtrar as 1000+ cidades."""
+    uf = uf.upper()
+    termo = request.args.get("q", "").strip()
+
+    # Valida se o UF existe
+    estado = query(
+        "SELECT feriado_estado_uf AS uf FROM feriado_estados WHERE feriado_estado_uf = %s",
+        (uf,), one=True
+    )
+    if not estado:
+        return jsonify({"resultados": []})
+
+    if len(termo) < 1:
+        # Se não digitar nada, retorna as 20 primeiras cidades do estado
+        cidades = query("""
+            SELECT feriado_municipio_nome AS nome, feriado_municipio_slug AS slug
+            FROM feriado_municipios
+            WHERE feriado_municipio_uf = %s
+            ORDER BY feriado_municipio_nome
+            LIMIT 20
+        """, (uf,))
+    else:
+        # Se digitar algo, filtra por ILIKE
+        padrao = f"%{termo}%"
+        cidades = query("""
+            SELECT feriado_municipio_nome AS nome, feriado_municipio_slug AS slug
+            FROM feriado_municipios
+            WHERE feriado_municipio_uf = %s AND feriado_municipio_nome ILIKE %s
+            ORDER BY feriado_municipio_nome
+            LIMIT 50
+        """, (uf, padrao))
+
+    resultados = [
+        {
+            "label": c["nome"],
+            "slug": c["slug"],
+            "url": f"/{uf.lower()}/{c['slug']}/"
+        }
+        for c in cidades
+    ]
+
+    return jsonify({"resultados": resultados})
 
 
 @app.route("/<uf>/")
