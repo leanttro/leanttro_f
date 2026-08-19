@@ -305,7 +305,7 @@ def _melhores_periodos_ferias(feriados, ano, n_dias, max_resultados=5):
 # Por isso o cache é gravado em ARQUIVO, que é compartilhado por todos
 # os processos do mesmo container.
 _DOLAR_CACHE_PATH = "/tmp/feriados2027_cotacao_dolar_cache.json"
-_DOLAR_CACHE_TTL_SEGUNDOS = 900          # 15 minutos — cotação não precisa ser por segundo
+_DOLAR_CACHE_TTL_SEGUNDOS = 3600         # 60 minutos — cotação não precisa ser por segundo
 _DOLAR_RETRY_COOLDOWN_SEGUNDOS = 180     # após falha (ex.: 429), espera 3 min antes de tentar de novo
 
 
