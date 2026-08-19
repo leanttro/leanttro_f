@@ -45,14 +45,83 @@
   {% endfor %}
 </div>
 
-<!-- ── CIDADES DO ESTADO ─────────────────────────────────── -->
+<!-- ── CIDADES DO ESTADO (COM BUSCA) ─────────────────────── -->
 <div class="card">
   <h2>🏙️ Feriados por Cidade em {{ estado.nome }}</h2>
-  <div class="grid">
+  
+  <!-- Barra de busca de cidades -->
+  <div style="margin-bottom: 20px;">
+    <input 
+      type="text" 
+      id="busca-cidades" 
+      placeholder="🔍 Digite o nome da cidade..." 
+      style="
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s ease;
+      "
+      aria-label="Buscar cidade em {{ estado.nome }}"
+    >
+    <div id="info-cidades" style="margin-top: 8px; font-size: 12px; color: #999;">
+      {{ cidades|length }} cidades disponíveis
+    </div>
+  </div>
+
+  <!-- Grid de cidades (filtrável) -->
+  <div class="grid" id="grid-cidades">
     {% for c in cidades %}
-    <a href="/{{ estado.uf.lower() }}/{{ c.slug }}/">📍 {{ c.nome }}</a>
+    <a href="/{{ estado.uf.lower() }}/{{ c.slug }}/" class="cidade-item" data-cidade="{{ c.nome.lower() }}">
+      📍 {{ c.nome }}
+    </a>
     {% endfor %}
   </div>
+
+  <!-- Mensagem quando nenhuma cidade é encontrada -->
+  <div id="nenhuma-cidade" style="display: none; text-align: center; padding: 32px 20px; color: #999;">
+    <p style="font-size: 14px; margin: 0;">Nenhuma cidade encontrada para esse termo.</p>
+  </div>
 </div>
+
+<script>
+(function() {
+  var input = document.getElementById('busca-cidades');
+  var grid = document.getElementById('grid-cidades');
+  var nenhuma = document.getElementById('nenhuma-cidade');
+  var info = document.getElementById('info-cidades');
+  var items = Array.from(grid.querySelectorAll('.cidade-item'));
+  var totalCidades = items.length;
+
+  input.addEventListener('input', function() {
+    var termo = this.value.toLowerCase().trim();
+    var vistos = 0;
+
+    items.forEach(function(item) {
+      var nomeCidade = item.getAttribute('data-cidade');
+      var match = nomeCidade.includes(termo);
+
+      if (match) {
+        item.style.display = '';
+        vistos++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    if (vistos === 0) {
+      grid.style.display = 'none';
+      nenhuma.style.display = 'block';
+      info.textContent = 'Nenhuma cidade encontrada';
+    } else {
+      grid.style.display = 'grid';
+      nenhuma.style.display = 'none';
+      info.textContent = vistos + ' de ' + totalCidades + ' cidades';
+    }
+  });
+})();
+</script>
 
 {% endblock %}
