@@ -908,6 +908,119 @@
       margin-bottom: 12px;
     }
   }
+
+  /* ── FERRAMENTAS EM DESTAQUE (calculadora de férias / dólar) ── */
+  .ferramentas-destaque {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .card-ferramenta {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: var(--card);
+    border: 1px solid var(--cinza-borda);
+    border-radius: 14px;
+    padding: 20px 22px;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .card-ferramenta:hover {
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.10);
+    transform: translateY(-2px);
+  }
+
+  .cf-icone {
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cf-icone svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .card-ferramenta--calc .cf-icone {
+    background: #ecfdf5;
+    color: #0f766e;
+  }
+
+  .card-ferramenta--calc:hover {
+    border-color: #99e6d9;
+  }
+
+  .card-ferramenta--dolar .cf-icone {
+    background: #fdf6e3;
+    color: #92400e;
+  }
+
+  .card-ferramenta--dolar:hover {
+    border-color: #e6cf9c;
+  }
+
+  .cf-corpo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .cf-titulo {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--texto);
+    letter-spacing: -0.2px;
+  }
+
+  .cf-desc {
+    font-size: 13px;
+    color: var(--texto-claro);
+    line-height: 1.5;
+  }
+
+  .cf-cta {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .card-ferramenta--calc .cf-cta {
+    color: #0f766e;
+  }
+
+  .card-ferramenta--dolar .cf-cta {
+    color: #92400e;
+  }
+
+  @media (max-width: 600px) {
+    .card-ferramenta {
+      padding: 16px 18px;
+    }
+
+    .cf-icone {
+      width: 40px;
+      height: 40px;
+    }
+
+    .cf-icone svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .cf-titulo {
+      font-size: 15px;
+    }
+  }
 </style>
 </head>
 <body>
