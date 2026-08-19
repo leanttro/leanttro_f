@@ -1,0 +1,119 @@
+{% extends "_base.html" %}
+
+{% block title %}Calculadora de Férias {{ ano }}{% if estado %} em {{ estado.nome }}{% endif %} — Melhores períodos para tirar folga{% endblock %}
+{% block description %}Descubra os melhores períodos para tirar férias em {{ ano }}{% if estado %} em {{ estado.nome }}{% endif %}. Escolha quantos dias você tem disponíveis e veja onde emendar com feriados e fins de semana para descansar o máximo possível.{% endblock %}
+{% block og_title %}Calculadora de Férias {{ ano }}{% if estado %} em {{ estado.nome }}{% endif %}{% endblock %}
+{% block og_description %}Informe quantos dias de férias você tem e veja os melhores períodos pra tirar em {{ ano }}, aproveitando feriados{% if estado %} de {{ estado.nome }}{% endif %} e fins de semana.{% endblock %}
+{% block twitter_title %}Calculadora de Férias {{ ano }}{% if estado %} em {{ estado.nome }}{% endif %}{% endblock %}
+{% block twitter_description %}Informe quantos dias de férias você tem e veja os melhores períodos pra tirar em {{ ano }}.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Férias {{ ano }}{% if estado %} — {{ estado.nome }}{% endif %}",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "url": "{{ request.url_root.rstrip('/') }}{{ request.path }}",
+  "description": "Calculadora que sugere os melhores períodos de férias de {{ ano }} para maximizar dias de descanso, combinando feriados{% if estado %} de {{ estado.nome }}{% endif %} e fins de semana.",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<a href="{% if estado %}/{{ estado.uf.lower() }}/{% else %}/{% endif %}" class="voltar">
+  {% if estado %}Voltar para {{ estado.nome }}{% else %}Todos os estados{% endif %}
+</a>
+
+<div class="card">
+  <h1>🧳 Calculadora de Férias {{ ano }}{% if estado %} — {{ estado.nome }}{% endif %}</h1>
+  <p>
+    Diz quantos dias de férias você tem em {{ ano }} e a gente mostra os melhores períodos pra tirar,
+    aproveitando feriados{% if estado %} nacionais e estaduais de {{ estado.nome }}{% else %} nacionais{% endif %}
+    e fins de semana pra render o máximo de descanso.
+  </p>
+  {% if not estado %}
+  <p style="font-size: 13px; color: var(--texto-claro);">
+    💡 Essa calculadora usa só feriados nacionais. Se você quer incluir os feriados estaduais do seu estado
+    (o que costuma abrir mais oportunidades de emenda), escolha seu estado no menu acima.
+  </p>
+  {% endif %}
+</div>
+
+<!-- ── SELETOR DE DIAS DISPONÍVEIS ───────────────────────── -->
+<div class="card">
+  <h2>Quantos dias de férias você tem?</h2>
+  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));">
+    {% for opcao in dias_opcoes %}
+    <a
+      href="?dias={{ opcao }}"
+      class="{{ 'dia-opcao-ativa' if opcao == n_dias else '' }}"
+      style="
+        text-align: center;
+        padding: 14px 8px;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+        {% if opcao == n_dias %}
+          background: var(--azul-medio); color: #fff;
+        {% else %}
+          background: var(--azul-claro); color: var(--azul-escuro);
+        {% endif %}
+      "
+    >{{ opcao }} dias</a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ── RESULTADOS ─────────────────────────────────────────── -->
+<div class="card">
+  <h2>🌴 Melhores períodos com {{ n_dias }} dias de férias</h2>
+
+  {% if periodos %}
+  <p>Ordenado pelo período que rende mais dias corridos de descanso:</p>
+
+  {% for p in periodos %}
+  <div class="ponte">
+    <div class="destaque">
+      {{ p.inicio.strftime('%d/%m') }} a {{ p.fim.strftime('%d/%m') }}
+    </div>
+    <p>
+      Tirando <strong>{{ p.dias_gastos }} {{ 'dia' if p.dias_gastos == 1 else 'dias' }}</strong> de férias
+      nesse período, você descansa <strong>{{ p.dias_descanso_total }} dias corridos</strong>
+      ({{ p.inicio.strftime('%d/%m/%Y') }} a {{ p.fim.strftime('%d/%m/%Y') }}).
+    </p>
+  </div>
+  {% endfor %}
+
+  {% else %}
+  <p>Não encontramos um período válido com esse número de dias. Tente outra quantidade acima.</p>
+  {% endif %}
+</div>
+
+<!-- ── LINK PRA VERSÃO NACIONAL/ESTADUAL ─────────────────── -->
+{% if not estado %}
+<div class="card">
+  <h2>Quer ver por estado?</h2>
+  <p>Feriados estaduais mudam de estado pra estado e podem abrir novas emendas. Escolha o seu:</p>
+  <div class="grid">
+    {% for e in estados_dropdown %}
+    <a href="/{{ e.uf.lower() }}/calculadora-ferias/">📍 {{ e.nome }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <h2>Ver todos os feriados de {{ estado.nome }}</h2>
+  <p>
+    Quer ver a lista completa de feriados{% if estado %} de {{ estado.nome }}{% endif %}, calendário mês a mês
+    e as emendas naturais de fim de semana?
+    <a href="/{{ estado.uf.lower() }}/">Confira a página de {{ estado.nome }}</a>.
+  </p>
+</div>
+{% endif %}
+
+{% endblock %}
