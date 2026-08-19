@@ -305,7 +305,7 @@ def _melhores_periodos_ferias(feriados, ano, n_dias, max_resultados=5):
 # Por isso o cache é gravado em ARQUIVO, que é compartilhado por todos
 # os processos do mesmo container.
 _DOLAR_CACHE_PATH = "/tmp/feriados2027_cotacao_dolar_cache.json"
-_DOLAR_CACHE_TTL_SEGUNDOS = 3600         # 60 minutos — cotação não precisa ser por segundo
+_DOLAR_CACHE_TTL_SEGUNDOS = 3600         # 60 minutos — a API-fonte (open.er-api.com) só atualiza 1x/dia mesmo
 _DOLAR_RETRY_COOLDOWN_SEGUNDOS = 180     # após falha (ex.: 429), espera 3 min antes de tentar de novo
 
 
@@ -345,20 +345,23 @@ def _buscar_cotacao_dolar():
         return cache["cotacao"] if cache.get("cotacao") else {"erro": True}
 
     try:
+        # open.er-api.com: sem API key, sem rate limit agressivo (atualiza
+        # 1x por dia, então pode ser consultada à vontade). Em troca, só
+        # devolve um valor "médio" — não tem compra/venda separados,
+        # nem máxima/mínima do dia, nem variação % (a AwesomeAPI dava
+        # isso, mas estava derrubando o site com 429).
         resp = requests.get(
-            "https://economia.awesomeapi.com.br/json/last/USD-BRL",
+            "https://open.er-api.com/v6/latest/USD",
             timeout=5,
         )
         resp.raise_for_status()
-        bruto = resp.json()["USDBRL"]
+        bruto = resp.json()
+        if bruto.get("result") != "success":
+            raise ValueError(f"resposta inesperada da API de câmbio: {bruto}")
         cotacao = {
             "erro": False,
-            "compra": float(bruto["bid"]),
-            "venda": float(bruto["ask"]),
-            "variacao_pct": float(bruto["pctChange"]),
-            "maxima": float(bruto["high"]),
-            "minima": float(bruto["low"]),
-            "atualizado_em": bruto["create_date"],  # "2027-01-05 14:32:10"
+            "valor": float(bruto["rates"]["BRL"]),
+            "atualizado_em": bruto.get("time_last_update_utc", ""),
         }
         _gravar_cache_dolar_disco({"cotacao": cotacao, "hora": agora, "ultima_falha": None})
         return cotacao
