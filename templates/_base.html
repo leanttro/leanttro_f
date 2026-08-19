@@ -3,22 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}Feriados {{ ano }}{% endblock %}</title>
+<link rel="icon" type="image/x-icon" href="https://i.imgur.com/Kbvnb6Z.png">
+<link rel="apple-touch-icon" href="https://i.imgur.com/Kbvnb6Z.png">
+
+<!-- ── SEO básico ─────────────────────────────────────────── -->
+<title>{% block title %}Feriados {{ ano }} — Calendário Nacional, Estadual e Municipal{% endblock %}</title>
+<meta name="description" content="{% block description %}Confira todos os feriados de {{ ano }}: nacionais, estaduais e municipais. Calendário completo do Brasil, com pontes e emendas para planejar suas folgas.{% endblock %}">
+<meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+<meta name="author" content="Feriados {{ ano }}">
+<link rel="canonical" href="{% block canonical %}{{ request.url_root.rstrip('/') }}{{ request.path }}{% endblock %}">
+
+<!-- ── Open Graph / Facebook ──────────────────────────────── -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Feriados {{ ano }}">
+<meta property="og:url" content="{% block og_url %}{{ request.url_root.rstrip('/') }}{{ request.path }}{% endblock %}">
+<meta property="og:title" content="{% block og_title %}Feriados {{ ano }} — Calendário Nacional, Estadual e Municipal{% endblock %}">
+<meta property="og:description" content="{% block og_description %}Confira todos os feriados de {{ ano }}: nacionais, estaduais e municipais. Calendário completo do Brasil, com pontes e emendas para planejar suas folgas.{% endblock %}">
+<meta property="og:image" content="{% block og_image %}https://i.imgur.com/dlxIOwA.png{% endblock %}">
+
+<!-- ── Twitter Card ────────────────────────────────────────── -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{% block twitter_title %}Feriados {{ ano }} — Calendário Nacional, Estadual e Municipal{% endblock %}">
+<meta name="twitter:description" content="{% block twitter_description %}Confira todos os feriados de {{ ano }}: nacionais, estaduais e municipais. Calendário completo do Brasil, com pontes e emendas para planejar suas folgas.{% endblock %}">
+<meta name="twitter:image" content="{% block twitter_image %}https://i.imgur.com/dlxIOwA.png{% endblock %}">
+
+<!-- ── Dados estruturados (JSON-LD) ───────────────────────── -->
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Feriados {{ ano }}",
+  "url": "{{ request.url_root }}",
+  "description": "Calendário completo de feriados nacionais, estaduais e municipais do Brasil em {{ ano }}, com calculadora de pontes e emendas.",
+  "inLanguage": "pt-BR",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "{{ request.url_root.rstrip('/') }}/buscar/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+{% endblock %}
+
+<!-- ── Google tag (gtag.js) ───────────────────────────────── -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-471L38EC7X"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-471L38EC7X');
+</script>
+
 <style>
   :root {
-    --azul-bebe: #E3F2FD;
-    --azul-bebe-forte: #BBDEFB;
+    --azul-claro: #E3F2FD;
+    --azul-medio: #1E88E5;
+    --azul-escuro: #1565C0;
+    --azul-bebe: #BBDEFB;
     --azul-bebe-mais-forte: #90CAF9;
-    --verde-agua: #20C997;
-    --verde-agua-claro: #51E5A8;
-    --verde-agua-escuro: #0FA973;
+    --verde-escuro: #1B5E20;
+    --verde-mais-escuro: #0D3817;
     --texto: #1a1a1a;
     --texto-claro: #555555;
     --card: #ffffff;
     --vermelho: #dc2626;
     --vermelho-claro: #fee2e2;
     --azul: #2563eb;
-    --azul-claro: #dbeafe;
+    --azul-claro-tag: #dbeafe;
     --cinza-borda: #e0e0e0;
     --roxo: #9333ea;
     --roxo-claro: #f3e8ff;
@@ -31,7 +84,7 @@
   
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
-    background: linear-gradient(135deg, var(--azul-bebe) 0%, #F0F9FF 50%, #E0F9F5 100%);
+    background: linear-gradient(135deg, var(--azul-claro) 0%, #F0F9FF 50%, #E8F5F7 100%);
     color: var(--texto);
     margin: 0;
     padding: 0;
@@ -40,13 +93,11 @@
 
   /* ── CABEÇALHO ─────────────────────────────────────────── */
   header {
-    background: linear-gradient(90deg, #1E88E5 0%, var(--verde-agua) 100%);
+    background: linear-gradient(90deg, #0D47A1 0%, #1565C0 100%);
     color: #fff;
-    padding: 16px 20px;
-    box-shadow: 0 8px 24px rgba(30, 136, 229, 0.2);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    padding: 8px 20px;
+    box-shadow: 0 8px 24px rgba(13, 71, 161, 0.2);
+    position: static;
   }
   
   .header-inner {
@@ -55,18 +106,22 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 20px;
+    justify-content: flex-start;
+    gap: 32px;
   }
   
   .marca {
     display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 12px;
+    background: rgba(255,255,255,0.08);
+    padding: 4px 20px;
+    border-radius: 12px;
   }
   
   .marca img {
-    height: 48px;
+    height: 160px;
     width: auto;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
   }
@@ -76,7 +131,9 @@
     text-decoration: none;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
+    align-items: center;
+    text-align: center;
   }
   
   .marca h1 {
@@ -84,13 +141,14 @@
     margin: 0;
     font-weight: 800;
     letter-spacing: -0.5px;
+    display: none;
   }
   
   .marca p {
     margin: 0;
-    font-size: 12px;
-    color: rgba(255,255,255,0.9);
-    font-weight: 400;
+    font-size: 18px;
+    color: rgba(255,255,255,0.95);
+    font-weight: 500;
   }
 
   /* ── Controles no header ─────────────────────────────── */
@@ -184,12 +242,12 @@
     padding: 24px;
     margin-bottom: 24px;
     box-shadow: var(--sombra);
-    border: 1px solid rgba(32, 201, 151, 0.08);
+    border: 1px solid rgba(13, 71, 161, 0.08);
     transition: all 0.3s ease;
   }
 
   .card:hover {
-    box-shadow: 0 8px 24px rgba(32, 201, 151, 0.12);
+    box-shadow: 0 8px 24px rgba(13, 71, 161, 0.12);
   }
 
   /* ── GRID DE ESTADOS/CIDADES ─────────────────────────── */
@@ -204,27 +262,27 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), var(--verde-agua-claro));
+    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), #BBDEFB);
     padding: 16px 12px;
     border-radius: 14px;
     text-decoration: none;
-    color: var(--verde-agua-escuro);
+    color: var(--verde-escuro);
     font-weight: 700;
     font-size: 14px;
-    box-shadow: 0 2px 8px rgba(32, 201, 151, 0.1);
-    border: 1px solid rgba(32, 201, 151, 0.15);
+    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.1);
+    border: 1px solid rgba(13, 71, 161, 0.15);
     transition: all 0.3s ease;
   }
 
   .grid a:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(32, 201, 151, 0.2);
-    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), var(--verde-agua));
+    box-shadow: 0 8px 16px rgba(13, 71, 161, 0.2);
+    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), #90CAF9);
   }
 
   /* ── TÍTULOS ───────────────────────────────────────── */
   h1 {
-    color: var(--verde-agua-escuro);
+    color: var(--verde-escuro);
     margin-top: 0;
     margin-bottom: 8px;
     font-size: 28px;
@@ -233,7 +291,7 @@
   }
 
   h2 {
-    color: var(--verde-agua-escuro);
+    color: var(--verde-escuro);
     font-size: 18px;
     margin-top: 0;
     margin-bottom: 16px;
@@ -251,7 +309,7 @@
     align-items: center;
     gap: 6px;
     margin-bottom: 16px;
-    color: var(--verde-agua);
+    color: var(--verde-escuro);
     font-weight: 700;
     text-decoration: none;
     font-size: 14px;
@@ -260,7 +318,7 @@
 
   .voltar:hover {
     gap: 10px;
-    color: var(--verde-agua-escuro);
+    color: var(--verde-mais-escuro);
   }
 
   .voltar::before {
@@ -274,7 +332,7 @@
     justify-content: space-between;
     gap: 10px;
     padding: 12px 0;
-    border-bottom: 1px solid var(--azul-bebe);
+    border-bottom: 1px solid var(--azul-claro);
   }
 
   .feriado-item:last-child {
@@ -297,12 +355,12 @@
   }
 
   .tag-estadual {
-    background: linear-gradient(135deg, rgba(32, 201, 151, 0.2), rgba(32, 201, 151, 0.1));
-    color: var(--verde-agua);
+    background: linear-gradient(135deg, rgba(27, 94, 32, 0.15), rgba(27, 94, 32, 0.1));
+    color: var(--verde-escuro);
   }
 
   .tag-municipal {
-    background: var(--azul-claro);
+    background: var(--azul-claro-tag);
     color: var(--azul);
   }
 
@@ -318,7 +376,7 @@
 
   /* ── PONTE/EMENDA ──────────────────────────────────── */
   .ponte {
-    border-left: 4px solid var(--verde-agua);
+    border-left: 4px solid var(--verde-escuro);
     padding-left: 16px;
     margin-bottom: 16px;
     padding-top: 12px;
@@ -328,7 +386,7 @@
   .ponte .destaque {
     font-size: 20px;
     font-weight: 800;
-    color: var(--verde-agua);
+    color: var(--verde-escuro);
   }
 
   /* ── CALENDÁRIO (GRID DE 12 MESES) ─────────────────── */
@@ -340,156 +398,87 @@
 
   .mes-card {
     background: var(--card);
-    border: 1px solid var(--azul-bebe-forte);
+    border: 1px solid var(--azul-bebe);
     border-radius: 16px;
     padding: 16px;
-    box-shadow: 0 2px 8px rgba(30, 136, 229, 0.08);
+    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.08);
     transition: all 0.3s ease;
   }
 
   .mes-card:hover {
-    box-shadow: 0 8px 20px rgba(32, 201, 151, 0.12);
-    border-color: var(--verde-agua-claro);
+    box-shadow: 0 8px 20px rgba(13, 71, 161, 0.12);
+    border-color: var(--azul-bebe-mais-forte);
   }
 
   .mes-titulo {
     font-weight: 800;
-    color: var(--verde-agua-escuro);
+    color: var(--verde-escuro);
     margin-bottom: 10px;
     font-size: 15px;
   }
 
-  .dias-semana {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    font-size: 10px;
-    color: #999;
+  .calendario-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .calendario-table th {
+    background: var(--azul-claro);
+    color: var(--verde-escuro);
+    padding: 8px 2px;
     text-align: center;
-    margin-bottom: 6px;
     font-weight: 700;
-    text-transform: uppercase;
+    border: none;
   }
 
-  .grade-dias {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-    margin-bottom: 3px;
-  }
-
-  .dia-cell {
-    display: contents;
+  .calendario-table td {
+    text-align: center;
+    padding: 6px 2px;
+    border: none;
+    height: 28px;
   }
 
   .dia {
-    aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
-    border-radius: 10px;
-    color: #333;
-    font-weight: 600;
-  }
-
-  .dia.vazio {
-    visibility: hidden;
-  }
-
-  .dia.feriado-nacional {
-    background: linear-gradient(135deg, #fee2e2, #fecaca);
-    color: var(--vermelho);
-    font-weight: 800;
-  }
-
-  .dia.feriado-estadual {
-    background: linear-gradient(135deg, rgba(32, 201, 151, 0.3), rgba(32, 201, 151, 0.15));
-    color: var(--verde-agua-escuro);
-    font-weight: 800;
-  }
-
-  .dia.feriado-municipal {
-    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-    color: var(--azul);
-    font-weight: 800;
-  }
-
-  .dia.feriado-ponto_facultativo {
-    background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
-    color: var(--roxo);
-    font-weight: 800;
-  }
-
-  .dia.feriado-comemorativa {
-    background: linear-gradient(135deg, #fed7aa, #fdba74);
-    color: var(--laranja);
-    font-weight: 800;
-  }
-
-  button.dia {
-    width: 100%;
-    border: 0;
-    font: inherit;
-    cursor: pointer;
-    padding: 0;
+    height: 28px;
+    border-radius: 6px;
+    cursor: default;
+    color: var(--texto);
+    font-weight: 500;
     transition: all 0.2s ease;
   }
 
-  button.dia:hover,
-  button.dia:focus-visible,
-  button.dia[aria-expanded="true"] {
-    filter: brightness(0.95);
-    transform: scale(1.08);
-    outline: 2px solid rgba(32, 201, 151, 0.4);
-    outline-offset: -1px;
-  }
-
-  .lista-feriados-mes {
-    margin-top: 12px;
-    border-top: 1px dashed var(--azul-bebe-forte);
-    padding-top: 10px;
-  }
-
-  .lista-feriados-mes .item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    margin-bottom: 6px;
-  }
-
-  .lista-feriados-mes .dia-num {
-    font-weight: 800;
-    color: var(--verde-agua);
-    width: 20px;
-    flex-shrink: 0;
-    background: rgba(32, 201, 151, 0.1);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2px;
-    font-size: 11px;
-  }
-
-  .lista-feriados-mes .nome-feriado {
-    flex: 1;
+  .dia:not(.outro-mes):not(.vazio) {
+    background: transparent;
     color: var(--texto);
   }
 
-  .lista-feriados-mes .tag {
-    font-size: 8px;
-    padding: 2px 6px;
+  .dia.outro-mes {
+    color: #ddd;
   }
 
-  .sem-feriados-mes {
-    font-size: 12px;
-    color: #bbb;
-    margin-top: 10px;
-    font-style: italic;
+  .dia.feriado-item {
+    background: linear-gradient(135deg, rgba(13, 71, 161, 0.15), rgba(13, 71, 161, 0.08));
+    color: var(--azul-medio);
+    font-weight: 600;
   }
 
-  /* ── POPOVER DE FERIADO ────────────────────────────── */
+  .dia[aria-haspopup="true"] {
+    cursor: pointer;
+    background: linear-gradient(135deg, rgba(27, 94, 32, 0.2), rgba(27, 94, 32, 0.1));
+    color: var(--verde-escuro);
+    font-weight: 700;
+    border: 1px solid rgba(27, 94, 32, 0.3);
+  }
+
+  .dia[aria-haspopup="true"]:hover {
+    background: linear-gradient(135deg, rgba(27, 94, 32, 0.35), rgba(27, 94, 32, 0.2));
+    transform: scale(1.05);
+  }
+
   .feriado-popover-panel {
     position: fixed;
     z-index: 1000;
@@ -499,7 +488,7 @@
     box-shadow: 0 20px 50px rgba(0,0,0,0.25);
     max-height: min(450px, calc(100vh - 24px));
     overflow-y: auto;
-    border: 1px solid var(--azul-bebe-forte);
+    border: 1px solid var(--azul-bebe);
   }
 
   .feriado-popover-panel .fp-close {
@@ -512,8 +501,8 @@
     height: 32px;
     border: 0;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--azul-bebe), var(--azul-bebe-mais-forte));
-    color: var(--verde-agua);
+    background: linear-gradient(135deg, var(--azul-claro), var(--azul-bebe-mais-forte));
+    color: var(--verde-escuro);
     font-size: 18px;
     line-height: 1;
     cursor: pointer;
@@ -522,7 +511,7 @@
   }
 
   .feriado-popover-panel .fp-close:hover {
-    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), var(--verde-agua-claro));
+    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), #90CAF9);
     color: #fff;
     transform: rotate(90deg);
   }
@@ -533,7 +522,7 @@
   }
 
   .feriado-info + .feriado-info {
-    border-top: 1px solid var(--azul-bebe);
+    border-top: 1px solid var(--azul-claro);
     padding-top: 16px;
   }
 
@@ -554,7 +543,7 @@
   }
 
   .fp-tag.tag-estadual {
-    background: var(--verde-agua);
+    background: var(--verde-escuro);
   }
 
   .fp-tag.tag-municipal {
@@ -573,7 +562,7 @@
     margin: 0 0 10px;
     font-size: 18px;
     font-weight: 800;
-    color: var(--verde-agua-escuro);
+    color: var(--verde-escuro);
   }
 
   .fp-desc {
@@ -590,13 +579,13 @@
 
   /* ── BUSCA PRINCIPAL (HOME) ────────────────────────── */
   .search-hero {
-    background: linear-gradient(135deg, #1E88E5 0%, var(--verde-agua) 100%);
+    background: linear-gradient(135deg, #0D47A1 0%, #1565C0 100%);
     border-radius: 16px;
     padding: 40px 24px;
     text-align: center;
     color: #fff;
     margin-bottom: 32px;
-    box-shadow: 0 12px 32px rgba(30, 136, 229, 0.2);
+    box-shadow: 0 12px 32px rgba(13, 71, 161, 0.2);
   }
 
   .search-hero h1 {
@@ -647,80 +636,178 @@
 
     .header-inner {
       flex-direction: column;
-      align-items: stretch;
+      align-items: center;
+      gap: 20px;
     }
 
     .marca {
-      gap: 8px;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px 20px;
+      width: 100%;
+      max-width: 300px;
     }
 
     .marca img {
-      height: 40px;
+      height: 75px;
     }
 
     .marca h1 {
       font-size: 18px;
     }
 
+    .marca p {
+      font-size: 14px;
+      text-align: center;
+    }
+
     .controles {
       width: 100%;
-      gap: 8px;
+      gap: 10px;
+      flex-direction: column;
     }
 
     .controles select,
     .search-container {
-      flex: 1;
+      width: 100%;
       min-width: 0;
     }
 
     .search-container input {
-      font-size: 13px;
+      font-size: 14px;
     }
 
     main {
-      padding: 20px 16px;
+      padding: 24px 16px;
     }
 
     .card {
-      padding: 16px;
+      padding: 18px;
+      border-radius: 14px;
     }
 
     .grid {
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
     }
 
     .search-hero {
-      padding: 28px 16px;
+      padding: 32px 20px;
+      margin-bottom: 28px;
     }
 
     .search-hero h1 {
-      font-size: 24px;
+      font-size: 26px;
+      margin-bottom: 12px;
+    }
+
+    .search-hero p {
+      font-size: 15px;
+      margin-bottom: 20px;
     }
 
     .search-hero input {
       max-width: 100%;
+      padding: 12px 16px;
+      font-size: 14px;
     }
 
     h1 {
       font-size: 22px;
     }
-  }
 
-  @media (max-width: 480px) {
-    .marca h1 {
+    h2 {
       font-size: 16px;
     }
 
-    .marca p {
+    .calendario-table {
       font-size: 11px;
     }
 
+    .calendario-table th {
+      padding: 6px 1px;
+      font-size: 10px;
+    }
+
+    .calendario-table td {
+      padding: 5px 1px;
+      height: 26px;
+    }
+
+    .dia {
+      height: 26px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .marca {
+      padding: 12px 16px;
+      max-width: 100%;
+    }
+
+    .marca img {
+      height: 70px;
+    }
+
+    .marca p {
+      font-size: 13px;
+    }
+
     .grid {
-      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+      gap: 8px;
+    }
+
+    .search-hero {
+      padding: 24px 16px;
+      margin-bottom: 20px;
     }
 
     .search-hero h1 {
+      font-size: 22px;
+    }
+
+    .search-hero p {
+      font-size: 13px;
+    }
+
+    main {
+      padding: 16px 12px;
+    }
+
+    .card {
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .calendario-table {
+      font-size: 10px;
+    }
+
+    .calendario-table th {
+      padding: 4px 0px;
+      font-size: 9px;
+    }
+
+    .calendario-table td {
+      padding: 4px 0px;
+      height: 24px;
+    }
+
+    .dia {
+      height: 24px;
+      font-size: 11px;
+      border-radius: 4px;
+    }
+
+    h1 {
       font-size: 20px;
+    }
+
+    h2 {
+      font-size: 14px;
+      margin-bottom: 12px;
     }
   }
 </style>
