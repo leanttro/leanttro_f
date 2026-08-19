@@ -340,6 +340,278 @@
     background: linear-gradient(135deg, var(--azul-bebe-mais-forte), #90CAF9);
   }
 
+  /* ── PONTE/EMENDA ──────────────────────────────────── */
+  .ponte {
+    border-left: 4px solid var(--verde-escuro);
+    padding-left: 16px;
+    margin-bottom: 16px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .ponte .destaque {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--verde-escuro);
+  }
+
+  /* ── CALENDÁRIO (GRID DE 12 MESES) ─────────────────── */
+  .calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .mes-card {
+    background: var(--card);
+    border: 1px solid var(--azul-bebe);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .mes-card:hover {
+    box-shadow: 0 8px 20px rgba(13, 71, 161, 0.12);
+    border-color: var(--azul-bebe-mais-forte);
+  }
+
+  .mes-titulo {
+    font-weight: 800;
+    color: var(--verde-escuro);
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+
+  .dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    font-size: 10px;
+    color: #999;
+    text-align: center;
+    margin-bottom: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .grade-dias {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+
+  .dia-cell {
+    display: contents;
+  }
+
+  .dia {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border-radius: 10px;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .dia.vazio {
+    visibility: hidden;
+  }
+
+  .dia.feriado-nacional {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: var(--vermelho);
+    font-weight: 800;
+  }
+
+  .dia.feriado-estadual {
+    background: linear-gradient(135deg, rgba(27, 94, 32, 0.3), rgba(27, 94, 32, 0.15));
+    color: var(--verde-escuro);
+    font-weight: 800;
+  }
+
+  .dia.feriado-municipal {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: var(--azul);
+    font-weight: 800;
+  }
+
+  .dia.feriado-ponto_facultativo {
+    background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+    color: var(--roxo);
+    font-weight: 800;
+  }
+
+  .dia.feriado-comemorativa {
+    background: linear-gradient(135deg, #fed7aa, #fdba74);
+    color: var(--laranja);
+    font-weight: 800;
+  }
+
+  button.dia {
+    width: 100%;
+    border: 0;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s ease;
+  }
+
+  button.dia:hover,
+  button.dia:focus-visible,
+  button.dia[aria-expanded="true"] {
+    filter: brightness(0.95);
+    transform: scale(1.08);
+    outline: 2px solid rgba(27, 94, 32, 0.4);
+    outline-offset: -1px;
+  }
+
+  .lista-feriados-mes {
+    margin-top: 12px;
+    border-top: 1px dashed var(--azul-bebe);
+    padding-top: 10px;
+  }
+
+  .lista-feriados-mes .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .lista-feriados-mes .dia-num {
+    font-weight: 800;
+    color: var(--verde-escuro);
+    width: 20px;
+    flex-shrink: 0;
+    background: rgba(27, 94, 32, 0.1);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    font-size: 11px;
+  }
+
+  .lista-feriados-mes .nome-feriado {
+    flex: 1;
+    color: var(--texto);
+  }
+
+  .lista-feriados-mes .tag {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
+  .sem-feriados-mes {
+    font-size: 12px;
+    color: #bbb;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  .feriado-popover-panel {
+    position: fixed;
+    z-index: 1000;
+    width: min(340px, calc(100vw - 24px));
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    max-height: min(450px, calc(100vh - 24px));
+    overflow-y: auto;
+    border: 1px solid var(--azul-bebe);
+  }
+
+  .feriado-popover-panel .fp-close {
+    position: sticky;
+    float: right;
+    top: 8px;
+    right: 8px;
+    margin: 8px 8px 0 0;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--azul-claro), var(--azul-bebe-mais-forte));
+    color: var(--verde-escuro);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+
+  .feriado-popover-panel .fp-close:hover {
+    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), #90CAF9);
+    color: #fff;
+    transform: rotate(90deg);
+  }
+
+  .feriado-info {
+    padding: 8px 20px 20px;
+    clear: both;
+  }
+
+  .feriado-info + .feriado-info {
+    border-top: 1px solid var(--azul-claro);
+    padding-top: 16px;
+  }
+
+  .fp-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    padding: 6px 14px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+
+  .fp-tag.tag-nacional {
+    background: var(--vermelho);
+  }
+
+  .fp-tag.tag-estadual {
+    background: var(--verde-escuro);
+  }
+
+  .fp-tag.tag-municipal {
+    background: var(--azul);
+  }
+
+  .fp-tag.tag-ponto_facultativo {
+    background: var(--roxo);
+  }
+
+  .fp-tag.tag-comemorativa {
+    background: var(--laranja);
+  }
+
+  .fp-nome {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--verde-escuro);
+  }
+
+  .fp-desc {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--texto-claro);
+    line-height: 1.5;
+  }
+
+  .fp-local {
+    font-size: 12px;
+    color: var(--texto-claro);
+    margin-top: 8px;
+  }
+
   /* ── TÍTULOS ───────────────────────────────────────── */
   h1 {
     color: var(--verde-escuro);
@@ -646,9 +918,37 @@
   }
 
   /* ── RESPONSIVO ────────────────────────────────────── */
-  @media (max-width: 1000px) {
+  @media (max-width: 1200px) {
     .calendario-grid {
       grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 800px) {
+    .calendario-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .mes-card {
+      padding: 12px;
+    }
+
+    .mes-titulo {
+      font-size: 13px;
+    }
+
+    .dias-semana {
+      font-size: 9px;
+    }
+
+    .dia {
+      font-size: 11px;
+    }
+
+    .lista-feriados-mes .item {
+      font-size: 11px;
     }
   }
 
