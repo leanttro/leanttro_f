@@ -25,7 +25,7 @@
 
 {% block content %}
 
-<a href="/{{ estado.uf.lower() }}/" class="voltar">Voltar</a>
+<a href="/calculadora-ferias/" class="voltar">Voltar para calculadora de férias</a>
 
 <div class="card">
   <h1>💰 Calculadora de Remuneração de Férias 2026</h1>
@@ -153,7 +153,7 @@
         style="width: 100%; padding: 10px; border: 1px solid var(--borda); border-radius: 6px; font-size: 16px;"
       >
       <p style="font-size: 12px; color: var(--texto-claro); margin-top: 4px;">
-        💡 Cada dependente reduz em R$ 371,38 (2026). Cônjuge, filhos até 21 anos ou enteados.
+        💡 Cada dependente reduz a base de cálculo do IRRF em R$ 189,59 (2026). Cônjuge, filhos até 21 anos ou enteados.
       </p>
     </div>
 
@@ -228,7 +228,10 @@
       <strong>Abono pecuniário:</strong> até 10 dias podem ser vendidos (convertidos em dinheiro). Máximo 1/3 do período.
     </li>
     <li style="margin-bottom: 8px;">
-      <strong>INSS e IRRF:</strong> descontados sobre o bruto das férias com base em alíquotas 2026.
+      <strong>INSS e IRRF:</strong> descontados sobre o bruto das férias com base nas alíquotas e no teto oficiais de 2026.
+    </li>
+    <li style="margin-bottom: 8px;">
+      <strong>Novidade 2026:</strong> pela Lei nº 15.270/2025, quem recebe até R$ 5.000,00 no mês está isento de IRRF, com redução gradual até R$ 7.350,00. Essa calculadora já aplica essa regra.
     </li>
   </ul>
 </div>
@@ -238,18 +241,19 @@
 // TABELAS INSS E IRRF 2026
 // ════════════════════════════════════════════════════════════
 
-// INSS 2026 (Tabela progressiva)
+// INSS 2026 (Tabela progressiva) — Portaria Interministerial MPS/MF nº 13/2026.
+// Teto de contribuição: R$ 8.475,55 (desconto máximo ≈ R$ 988,09/mês).
 const ALIQUOTA_INSS_2026 = [
-  { ate: 1412.00, aliquota: 0.075 },
-  { ate: 2666.68, aliquota: 0.09 },
-  { ate: 4000.03, aliquota: 0.12 },
-  { ate: 7786.02, aliquota: 0.14 },
-  { ate: Infinity, aliquota: 0.14 }  // Teto
+  { ate: 1621.00, aliquota: 0.075 },
+  { ate: 2902.84, aliquota: 0.09 },
+  { ate: 4354.27, aliquota: 0.12 },
+  { ate: 8475.55, aliquota: 0.14 },
+  { ate: Infinity, aliquota: 0.14 }  // acima do teto, contribui só até o teto
 ];
 
-// IRRF 2026 (Tabela com deduções)
+// IRRF 2026 (tabela progressiva mensal — Receita Federal)
 const ALIQUOTA_IRRF_2026 = [
-  { ate: 2259.20, aliquota: 0 },
+  { ate: 2428.80, aliquota: 0 },
   { ate: 2826.65, aliquota: 0.075 },
   { ate: 3751.05, aliquota: 0.15 },
   { ate: 4664.68, aliquota: 0.225 },
@@ -257,48 +261,75 @@ const ALIQUOTA_IRRF_2026 = [
 ];
 
 const DEDUCAO_IRRF_2026 = [
-  { ate: 2259.20, deducao: 0 },
-  { ate: 2826.65, deducao: 169.44 },
-  { ate: 3751.05, deducao: 381.38 },
-  { ate: 4664.68, deducao: 647.38 },
-  { ate: Infinity, deducao: 1124.74 }
+  { ate: 2428.80, deducao: 0 },
+  { ate: 2826.65, deducao: 182.16 },
+  { ate: 3751.05, deducao: 394.16 },
+  { ate: 4664.68, deducao: 675.49 },
+  { ate: Infinity, deducao: 908.73 }
 ];
 
-const VALOR_DEPENDENTE_IRRF_2026 = 371.38;
-const TETO_INSS_2026 = 7786.02;
+const VALOR_DEPENDENTE_IRRF_2026 = 189.59;
+const TETO_INSS_2026 = 8475.55;
+
+// Redutor da Lei nº 15.270/2025 — zera o IRRF pra quem ganha até R$5.000/mês
+// e reduz progressivamente até R$7.350/mês. Acima disso, tabela tradicional
+// sem redutor. Fórmula oficial: R$978,62 − (0,133145 × renda bruta mensal).
+const REDUTOR_IRRF_2026_BASE = 978.62;
+const REDUTOR_IRRF_2026_FATOR = 0.133145;
+const REDUTOR_IRRF_2026_TETO_RENDA = 7350.00;
 
 // ════════════════════════════════════════════════════════════
 // FUNÇÕES DE CÁLCULO
 // ════════════════════════════════════════════════════════════
 
 function calcularINSS(salario) {
+  // Contribuição limitada ao teto de 2026 (R$ 8.475,55) — acima disso não
+  // há mais desconto, o valor máximo de contribuição fica travado em
+  // ≈ R$ 988,09/mês, mesmo pra quem ganha muito mais que o teto.
+  const salarioParaCalculo = Math.min(salario, TETO_INSS_2026);
+
   let inss = 0;
+  let faixaAnterior = 0;
   for (let i = 0; i < ALIQUOTA_INSS_2026.length; i++) {
     const faixa = ALIQUOTA_INSS_2026[i];
-    const faixaAnterior = i > 0 ? ALIQUOTA_INSS_2026[i - 1].ate : 0;
-    const base = Math.min(salario, faixa.ate) - faixaAnterior;
+    const base = Math.min(salarioParaCalculo, faixa.ate) - faixaAnterior;
     if (base > 0) {
       inss += base * faixa.aliquota;
     }
-    if (salario <= faixa.ate) break;
+    if (salarioParaCalculo <= faixa.ate) break;
+    faixaAnterior = faixa.ate;
   }
   return inss;
 }
 
-function calcularIRRF(salario, dependentes = 0) {
+function calcularIRRF(rendaBruta, inss, dependentes = 0) {
+  // Base de cálculo = renda bruta − INSS − dedução por dependente
   const deducaoDependentes = dependentes * VALOR_DEPENDENTE_IRRF_2026;
-  const baseCalculo = salario - deducaoDependentes;
+  const baseCalculo = rendaBruta - inss - deducaoDependentes;
 
   if (baseCalculo <= 0) return 0;
 
+  let irrfBruto = 0;
   for (let i = 0; i < ALIQUOTA_IRRF_2026.length; i++) {
     const faixa = ALIQUOTA_IRRF_2026[i];
     if (baseCalculo <= faixa.ate) {
-      const irrf = (baseCalculo * faixa.aliquota) - DEDUCAO_IRRF_2026[i].deducao;
-      return Math.max(0, irrf);
+      irrfBruto = (baseCalculo * faixa.aliquota) - DEDUCAO_IRRF_2026[i].deducao;
+      break;
     }
   }
-  return 0;
+  irrfBruto = Math.max(0, irrfBruto);
+
+  // Redutor da Lei nº 15.270/2025: zera o imposto até R$5.000/mês de renda
+  // bruta e reduz progressivamente até R$7.350/mês. Nunca gera crédito
+  // (não pode deixar o IRRF negativo).
+  if (rendaBruta <= REDUTOR_IRRF_2026_TETO_RENDA) {
+    let redutor = REDUTOR_IRRF_2026_BASE - (REDUTOR_IRRF_2026_FATOR * rendaBruta);
+    redutor = Math.max(0, redutor);
+    redutor = Math.min(redutor, irrfBruto);
+    irrfBruto -= redutor;
+  }
+
+  return irrfBruto;
 }
 
 function formatarMoeda(valor) {
@@ -374,7 +405,7 @@ document.getElementById('form-ferias').addEventListener('submit', function(e) {
 
   // Descontos
   const inss = calcularINSS(brutoCombinado);
-  const irrf = calcularIRRF(brutoCombinado, dependentes);
+  const irrf = calcularIRRF(brutoCombinado, inss, dependentes);
   const totalDescontos = inss + irrf;
   const liquido = brutoCombinado - totalDescontos;
 
