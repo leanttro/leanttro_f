@@ -1,22 +1,22 @@
 {% extends "_base.html" %}
 
-{% block title %}Calculadora de Férias {{ ano }}{% if estado %} em {{ estado.nome }}{% endif %} — Melhores períodos para tirar folga{% endblock %}
-{% block description %}Descubra os melhores períodos para tirar férias em {{ ano }}{% if estado %} em {{ estado.nome }}{% endif %}. Escolha quantos dias você tem disponíveis e veja onde emendar com feriados e fins de semana para descansar o máximo possível.{% endblock %}
-{% block og_title %}Calculadora de Férias {{ ano }}{% if estado %} em {{ estado.nome }}{% endif %}{% endblock %}
-{% block og_description %}Informe quantos dias de férias você tem e veja os melhores períodos pra tirar em {{ ano }}, aproveitando feriados{% if estado %} de {{ estado.nome }}{% endif %} e fins de semana.{% endblock %}
-{% block twitter_title %}Calculadora de Férias {{ ano }}{% if estado %} em {{ estado.nome }}{% endif %}{% endblock %}
-{% block twitter_description %}Informe quantos dias de férias você tem e veja os melhores períodos pra tirar em {{ ano }}.{% endblock %}
+{% block title %}Calculadora de Remuneração de Férias 2026{% endblock %}
+{% block description %}Calcule quanto você vai receber em férias. Informe seu salário, tipo de férias e veja o bruto, descontos de INSS/IRRF e o líquido com tabelas 2026.{% endblock %}
+{% block og_title %}Calculadora de Remuneração de Férias 2026{% endblock %}
+{% block og_description %}Calcule quanto você vai receber em férias. Informe seu salário e veja descontos de INSS e IRRF com tabelas 2026.{% endblock %}
+{% block twitter_title %}Calculadora de Remuneração de Férias 2026{% endblock %}
+{% block twitter_description %}Calcule quanto você vai receber em férias com tabelas 2026.{% endblock %}
 
 {% block structured_data %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": "Calculadora de Férias {{ ano }}{% if estado %} — {{ estado.nome }}{% endif %}",
+  "name": "Calculadora de Remuneração de Férias 2026",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Any",
   "url": "{{ request.url_root.rstrip('/') }}{{ request.path }}",
-  "description": "Calculadora que sugere os melhores períodos de férias de {{ ano }} para maximizar dias de descanso, combinando feriados{% if estado %} de {{ estado.nome }}{% endif %} e fins de semana.",
+  "description": "Calcula a remuneração bruta e líquida de férias com INSS e IRRF 2026.",
   "inLanguage": "pt-BR",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" }
 }
@@ -25,95 +25,415 @@
 
 {% block content %}
 
-<a href="{% if estado %}/{{ estado.uf.lower() }}/{% else %}/{% endif %}" class="voltar">
-  {% if estado %}Voltar para {{ estado.nome }}{% else %}Todos os estados{% endif %}
-</a>
+<a href="/{{ estado.uf.lower() }}/" class="voltar">Voltar</a>
 
 <div class="card">
-  <h1>🧳 Calculadora de Férias {{ ano }}{% if estado %} — {{ estado.nome }}{% endif %}</h1>
+  <h1>💰 Calculadora de Remuneração de Férias 2026</h1>
   <p>
-    Diz quantos dias de férias você tem em {{ ano }} e a gente mostra os melhores períodos pra tirar,
-    aproveitando feriados{% if estado %} nacionais e estaduais de {{ estado.nome }}{% else %} nacionais{% endif %}
-    e fins de semana pra render o máximo de descanso.
+    Descubra quanto você vai receber em férias. Informe seu salário bruto e a calculadora mostra
+    o bruto das férias (com 1/3 constitucional), descontos de INSS e IRRF, e o valor líquido,
+    com base nas tabelas oficiais de 2026.
   </p>
-  {% if not estado %}
-  <p style="font-size: 13px; color: var(--texto-claro);">
-    💡 Essa calculadora usa só feriados nacionais. Se você quer incluir os feriados estaduais do seu estado
-    (o que costuma abrir mais oportunidades de emenda), escolha seu estado no menu acima.
-  </p>
-  {% endif %}
 </div>
 
-<!-- ── SELETOR DE DIAS DISPONÍVEIS ───────────────────────── -->
+<!-- ── FORMULÁRIO DE ENTRADA ──────────────────────────────── -->
 <div class="card">
-  <h2>Quantos dias de férias você tem?</h2>
-  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));">
-    {% for opcao in dias_opcoes %}
-    <a
-      href="?dias={{ opcao }}"
-      class="{{ 'dia-opcao-ativa' if opcao == n_dias else '' }}"
+  <h2>Seus dados</h2>
+  
+  <form id="form-ferias">
+    <!-- Salário Bruto -->
+    <div style="margin-bottom: 20px;">
+      <label for="salario-bruto" style="display: block; margin-bottom: 6px; font-weight: 600;">
+        Salário Bruto Mensal (R$)
+      </label>
+      <input
+        type="number"
+        id="salario-bruto"
+        name="salario-bruto"
+        placeholder="Ex: 3000.00"
+        min="0"
+        step="0.01"
+        value="3000"
+        style="width: 100%; padding: 10px; border: 1px solid var(--borda); border-radius: 6px; font-size: 16px;"
+      >
+      <p style="font-size: 12px; color: var(--texto-claro); margin-top: 4px;">
+        💡 Valor antes de INSS e IRRF (conforme holerite)
+      </p>
+    </div>
+
+    <!-- Tipo de Férias -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 10px; font-weight: 600;">Tipo de Férias</label>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="radio" name="tipo-ferias" value="completas" checked>
+          <span>Completas (30 dias)</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="radio" name="tipo-ferias" value="proporcionais">
+          <span>Proporcionais</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Meses Trabalhados (apareça só se proporcionais) -->
+    <div id="div-meses-trabalhados" style="margin-bottom: 20px; display: none;">
+      <label for="meses-trabalhados" style="display: block; margin-bottom: 6px; font-weight: 600;">
+        Meses Trabalhados no Período Aquisitivo (0-12)
+      </label>
+      <input
+        type="number"
+        id="meses-trabalhados"
+        name="meses-trabalhados"
+        placeholder="Ex: 8"
+        min="0"
+        max="12"
+        step="1"
+        value="8"
+        style="width: 100%; padding: 10px; border: 1px solid var(--borda); border-radius: 6px; font-size: 16px;"
+      >
+      <p style="font-size: 12px; color: var(--texto-claro); margin-top: 4px;">
+        💡 Período aquisitivo = últimos 12 meses na empresa. Meses com ≥15 dias contam como mês cheio.
+      </p>
+    </div>
+
+    <!-- Faltas Injustificadas -->
+    <div style="margin-bottom: 20px;">
+      <label for="faltas-injustificadas" style="display: block; margin-bottom: 6px; font-weight: 600;">
+        Faltas Injustificadas (opcional)
+      </label>
+      <input
+        type="number"
+        id="faltas-injustificadas"
+        name="faltas-injustificadas"
+        placeholder="Ex: 0"
+        min="0"
+        max="30"
+        step="1"
+        value="0"
+        style="width: 100%; padding: 10px; border: 1px solid var(--borda); border-radius: 6px; font-size: 16px;"
+      >
+      <p style="font-size: 12px; color: var(--texto-claro); margin-top: 4px;">
+        💡 Cada falta injustificada reduz em 1/30 do direito a férias. Ex: 3 faltas = menos 3 dias.
+      </p>
+    </div>
+
+    <!-- Abono Pecuniário -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 10px; font-weight: 600;">Abono Pecuniário (Venda de Férias)</label>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="radio" name="abono" value="nao" checked>
+          <span>Não vender dias</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="radio" name="abono" value="sim10">
+          <span>Vender 10 dias (máximo legal)</span>
+        </label>
+      </div>
+      <p style="font-size: 12px; color: var(--texto-claro); margin-top: 8px;">
+        💡 Abono pecuniário = 1/3 do salário para cada 10 dias vendidos. Entra na base de IRRF.
+      </p>
+    </div>
+
+    <!-- Dependentes para IRRF (opcional) -->
+    <div style="margin-bottom: 20px;">
+      <label for="dependentes" style="display: block; margin-bottom: 6px; font-weight: 600;">
+        Dependentes para IRRF (opcional)
+      </label>
+      <input
+        type="number"
+        id="dependentes"
+        name="dependentes"
+        placeholder="Ex: 0"
+        min="0"
+        max="10"
+        step="1"
+        value="0"
+        style="width: 100%; padding: 10px; border: 1px solid var(--borda); border-radius: 6px; font-size: 16px;"
+      >
+      <p style="font-size: 12px; color: var(--texto-claro); margin-top: 4px;">
+        💡 Cada dependente reduz em R$ 371,38 (2026). Cônjuge, filhos até 21 anos ou enteados.
+      </p>
+    </div>
+
+    <button
+      type="submit"
       style="
-        text-align: center;
-        padding: 14px 8px;
-        border-radius: 10px;
-        font-weight: 700;
-        text-decoration: none;
-        {% if opcao == n_dias %}
-          background: var(--azul-medio); color: #fff;
-        {% else %}
-          background: var(--azul-claro); color: var(--azul-escuro);
-        {% endif %}
+        padding: 12px 24px;
+        background: var(--azul-medio);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
       "
-    >{{ opcao }} dias</a>
-    {% endfor %}
-  </div>
+    >
+      Calcular
+    </button>
+  </form>
 </div>
 
 <!-- ── RESULTADOS ─────────────────────────────────────────── -->
-<div class="card">
-  <h2>🌴 Melhores períodos com {{ n_dias }} dias de férias</h2>
+<div class="card" id="resultado-card" style="display: none;">
+  <h2>📊 Resultado do Cálculo</h2>
 
-  {% if periodos %}
-  <p>Ordenado pelo período que rende mais dias corridos de descanso:</p>
-
-  {% for p in periodos %}
-  <div class="ponte">
-    <div class="destaque">
-      {{ p.inicio.strftime('%d/%m') }} a {{ p.fim.strftime('%d/%m') }}
+  <!-- Resumo Rápido -->
+  <div style="background: var(--azul-claro); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div>
+        <p style="font-size: 12px; color: var(--texto-claro); margin-bottom: 4px;">BRUTO</p>
+        <p style="font-size: 24px; font-weight: 700; color: var(--azul-escuro);">
+          <span id="resultado-bruto">R$ 0,00</span>
+        </p>
+      </div>
+      <div>
+        <p style="font-size: 12px; color: var(--texto-claro); margin-bottom: 4px;">LÍQUIDO</p>
+        <p style="font-size: 24px; font-weight: 700; color: var(--verde);">
+          <span id="resultado-liquido">R$ 0,00</span>
+        </p>
+      </div>
     </div>
-    <p>
-      Tirando <strong>{{ p.dias_gastos }} {{ 'dia' if p.dias_gastos == 1 else 'dias' }}</strong> de férias
-      nesse período, você descansa <strong>{{ p.dias_descanso_total }} dias corridos</strong>
-      ({{ p.inicio.strftime('%d/%m/%Y') }} a {{ p.fim.strftime('%d/%m/%Y') }}).
+  </div>
+
+  <!-- Breakdown Detalhado -->
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+    <tbody id="resultado-tabela"></tbody>
+  </table>
+
+  <!-- Observações -->
+  <div style="background: var(--fundo-claro); padding: 12px; border-left: 4px solid var(--azul-medio); border-radius: 4px; font-size: 13px;">
+    <p style="margin: 0; color: var(--texto-claro);">
+      ℹ️ Cálculo baseado em tabelas INSS e IRRF 2026 vigentes. Consulte a holerite ou seu RH para confirmar valores exatos, 
+      pois podem haver descontos adicionais (vale, convênio, pensão alimentícia, etc.) não inclusos aqui.
     </p>
   </div>
-  {% endfor %}
-
-  {% else %}
-  <p>Não encontramos um período válido com esse número de dias. Tente outra quantidade acima.</p>
-  {% endif %}
 </div>
 
-<!-- ── LINK PRA VERSÃO NACIONAL/ESTADUAL ─────────────────── -->
-{% if not estado %}
+<!-- ── LINKS E INFO ────────────────────────────────────────── -->
 <div class="card">
-  <h2>Quer ver por estado?</h2>
-  <p>Feriados estaduais mudam de estado pra estado e podem abrir novas emendas. Escolha o seu:</p>
-  <div class="grid">
-    {% for e in estados_dropdown %}
-    <a href="/{{ e.uf.lower() }}/calculadora-ferias/">📍 {{ e.nome }}</a>
-    {% endfor %}
-  </div>
+  <h2>Saiba Mais</h2>
+  <ul style="margin: 0; padding-left: 20px;">
+    <li style="margin-bottom: 8px;">
+      <strong>Férias completas:</strong> 30 dias + 1/3 constitucional (direito de todo trabalhador)
+    </li>
+    <li style="margin-bottom: 8px;">
+      <strong>Férias proporcionais:</strong> calculadas por mês trabalhado. Meses com ≥15 dias = 1 mês completo.
+    </li>
+    <li style="margin-bottom: 8px;">
+      <strong>1/3 Constitucional:</strong> bônus de férias garantido pela Constituição. Salário × 1/3.
+    </li>
+    <li style="margin-bottom: 8px;">
+      <strong>Abono pecuniário:</strong> até 10 dias podem ser vendidos (convertidos em dinheiro). Máximo 1/3 do período.
+    </li>
+    <li style="margin-bottom: 8px;">
+      <strong>INSS e IRRF:</strong> descontados sobre o bruto das férias com base em alíquotas 2026.
+    </li>
+  </ul>
 </div>
-{% else %}
-<div class="card">
-  <h2>Ver todos os feriados de {{ estado.nome }}</h2>
-  <p>
-    Quer ver a lista completa de feriados{% if estado %} de {{ estado.nome }}{% endif %}, calendário mês a mês
-    e as emendas naturais de fim de semana?
-    <a href="/{{ estado.uf.lower() }}/">Confira a página de {{ estado.nome }}</a>.
-  </p>
-</div>
-{% endif %}
+
+<script>
+// ════════════════════════════════════════════════════════════
+// TABELAS INSS E IRRF 2026
+// ════════════════════════════════════════════════════════════
+
+// INSS 2026 (Tabela progressiva)
+const ALIQUOTA_INSS_2026 = [
+  { ate: 1412.00, aliquota: 0.075 },
+  { ate: 2666.68, aliquota: 0.09 },
+  { ate: 4000.03, aliquota: 0.12 },
+  { ate: 7786.02, aliquota: 0.14 },
+  { ate: Infinity, aliquota: 0.14 }  // Teto
+];
+
+// IRRF 2026 (Tabela com deduções)
+const ALIQUOTA_IRRF_2026 = [
+  { ate: 2259.20, aliquota: 0 },
+  { ate: 2826.65, aliquota: 0.075 },
+  { ate: 3751.05, aliquota: 0.15 },
+  { ate: 4664.68, aliquota: 0.225 },
+  { ate: Infinity, aliquota: 0.275 }
+];
+
+const DEDUCAO_IRRF_2026 = [
+  { ate: 2259.20, deducao: 0 },
+  { ate: 2826.65, deducao: 169.44 },
+  { ate: 3751.05, deducao: 381.38 },
+  { ate: 4664.68, deducao: 647.38 },
+  { ate: Infinity, deducao: 1124.74 }
+];
+
+const VALOR_DEPENDENTE_IRRF_2026 = 371.38;
+const TETO_INSS_2026 = 7786.02;
+
+// ════════════════════════════════════════════════════════════
+// FUNÇÕES DE CÁLCULO
+// ════════════════════════════════════════════════════════════
+
+function calcularINSS(salario) {
+  let inss = 0;
+  for (let i = 0; i < ALIQUOTA_INSS_2026.length; i++) {
+    const faixa = ALIQUOTA_INSS_2026[i];
+    const faixaAnterior = i > 0 ? ALIQUOTA_INSS_2026[i - 1].ate : 0;
+    const base = Math.min(salario, faixa.ate) - faixaAnterior;
+    if (base > 0) {
+      inss += base * faixa.aliquota;
+    }
+    if (salario <= faixa.ate) break;
+  }
+  return inss;
+}
+
+function calcularIRRF(salario, dependentes = 0) {
+  const deducaoDependentes = dependentes * VALOR_DEPENDENTE_IRRF_2026;
+  const baseCalculo = salario - deducaoDependentes;
+
+  if (baseCalculo <= 0) return 0;
+
+  for (let i = 0; i < ALIQUOTA_IRRF_2026.length; i++) {
+    const faixa = ALIQUOTA_IRRF_2026[i];
+    if (baseCalculo <= faixa.ate) {
+      const irrf = (baseCalculo * faixa.aliquota) - DEDUCAO_IRRF_2026[i].deducao;
+      return Math.max(0, irrf);
+    }
+  }
+  return 0;
+}
+
+function formatarMoeda(valor) {
+  return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ════════════════════════════════════════════════════════════
+// EVENT LISTENERS
+// ════════════════════════════════════════════════════════════
+
+const tipoFeriasRadios = document.querySelectorAll('input[name="tipo-ferias"]');
+const divMesesTrabalhados = document.getElementById('div-meses-trabalhados');
+
+tipoFeriasRadios.forEach(radio => {
+  radio.addEventListener('change', function() {
+    if (this.value === 'proporcionais') {
+      divMesesTrabalhados.style.display = 'block';
+    } else {
+      divMesesTrabalhados.style.display = 'none';
+    }
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+// ENVIO DO FORMULÁRIO
+// ════════════════════════════════════════════════════════════
+
+document.getElementById('form-ferias').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const salarioBruto = parseFloat(document.getElementById('salario-bruto').value) || 0;
+  const tipoFerias = document.querySelector('input[name="tipo-ferias"]:checked').value;
+  const mesesTrabalhados = parseInt(document.getElementById('meses-trabalhados').value) || 0;
+  const faltasInjustificadas = parseInt(document.getElementById('faltas-injustificadas').value) || 0;
+  const abono = document.querySelector('input[name="abono"]:checked').value;
+  const dependentes = parseInt(document.getElementById('dependentes').value) || 0;
+
+  // Validações
+  if (salarioBruto <= 0) {
+    alert('Informe um salário válido');
+    return;
+  }
+
+  if (tipoFerias === 'proporcionais' && mesesTrabalhados <= 0) {
+    alert('Informe quantos meses você trabalhou');
+    return;
+  }
+
+  // Cálculos
+  let diasFerias = 30;
+
+  // Se proporcionais, calcular dias
+  if (tipoFerias === 'proporcionais') {
+    diasFerias = Math.floor((mesesTrabalhados * 30) / 12);
+  }
+
+  // Descontar faltas injustificadas
+  diasFerias -= faltasInjustificadas;
+  diasFerias = Math.max(0, diasFerias);
+
+  // Bruto das férias = (salário / 30) × dias × (1 + 1/3)
+  const brutoDiaria = salarioBruto / 30;
+  const brutoDiasFerias = (brutoDiaria * diasFerias) * (4/3);
+
+  // Abono pecuniário
+  let bruteAbono = 0;
+  if (abono === 'sim10') {
+    bruteAbono = (brutoDiaria * 10) / 3; // 1/3 de 10 dias
+  }
+
+  // Total bruto
+  const brutoCombinado = brutoDiasFerias + bruteAbono;
+
+  // Descontos
+  const inss = calcularINSS(brutoCombinado);
+  const irrf = calcularIRRF(brutoCombinado, dependentes);
+  const totalDescontos = inss + irrf;
+  const liquido = brutoCombinado - totalDescontos;
+
+  // Renderizar resultados
+  document.getElementById('resultado-bruto').textContent = formatarMoeda(brutoCombinado);
+  document.getElementById('resultado-liquido').textContent = formatarMoeda(liquido);
+
+  // Tabela detalhada
+  const tabelaHTML = `
+    <tr style="border-bottom: 1px solid var(--borda);">
+      <td style="padding: 8px 0;">Salário bruto mensal</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${formatarMoeda(salarioBruto)}</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--borda);">
+      <td style="padding: 8px 0;">Dias de férias (${tipoFerias === 'completas' ? '30 dias completos' : mesesTrabalhados + ' meses'})${faltasInjustificadas > 0 ? ' − ' + faltasInjustificadas + ' falta(s)' : ''}</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${diasFerias} dias</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--borda);">
+      <td style="padding: 8px 0;">Bruto das férias (com 1/3 constitucional)</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${formatarMoeda(brutoDiasFerias)}</td>
+    </tr>
+    ${bruteAbono > 0 ? `
+    <tr style="border-bottom: 1px solid var(--borda);">
+      <td style="padding: 8px 0;">Abono pecuniário (10 dias)</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${formatarMoeda(bruteAbono)}</td>
+    </tr>
+    ` : ''}
+    <tr style="border-bottom: 2px solid var(--azul-medio); background: var(--azul-claro);">
+      <td style="padding: 8px 0; font-weight: 700;">TOTAL BRUTO</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 700; font-size: 18px;">${formatarMoeda(brutoCombinado)}</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--borda);">
+      <td style="padding: 8px 0; color: var(--texto-claro);">INSS (2026)</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600; color: var(--vermelho);">− ${formatarMoeda(inss)}</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--borda);">
+      <td style="padding: 8px 0; color: var(--texto-claro);">IRRF (2026)${dependentes > 0 ? ' (' + dependentes + ' dep.)' : ''}</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600; color: var(--vermelho);">− ${formatarMoeda(irrf)}</td>
+    </tr>
+    <tr style="background: var(--verde-claro);">
+      <td style="padding: 8px 0; font-weight: 700;">TOTAL LÍQUIDO</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 700; font-size: 18px; color: var(--verde);">${formatarMoeda(liquido)}</td>
+    </tr>
+  `;
+
+  document.getElementById('resultado-tabela').innerHTML = tabelaHTML;
+  document.getElementById('resultado-card').style.display = 'block';
+
+  // Scroll pra resultado
+  setTimeout(() => {
+    document.getElementById('resultado-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+});
+
+// Calcular no carregamento da página
+window.addEventListener('load', function() {
+  const event = new Event('submit');
+  document.getElementById('form-ferias').dispatchEvent(event);
+});
+</script>
 
 {% endblock %}
