@@ -1000,6 +1000,22 @@ def calculadora_ferias_estado(uf):
     )
 
 
+# ── NOVO: Calculadora de remuneração de férias (INSS/IRRF) ─────
+# Ferramenta 100% front-end (o cálculo roda todo em JS no navegador),
+# essa rota só existe pra servir o template com o layout do site.
+# Não depende de estado/cidade — INSS e IRRF são regras federais.
+
+@app.route("/calculadora-remuneracao-ferias/")
+def calculadora_remuneracao_ferias():
+    return render_template(
+        "calculadora_remuneracao_ferias.html",
+        ano=ANO_PRINCIPAL,
+        estado=None,
+        cidade=None,
+        cidades=None,
+    )
+
+
 # ── NOVO: Cotação de dólar ──────────────────────────────────────
 
 @app.route("/cotacao-dolar/")
@@ -1355,6 +1371,7 @@ def sitemap():
 
     # NOVO: calculadora de férias nacional + cotação de dólar
     urls.append({"loc": f"{BASE_URL}/calculadora-ferias/", "changefreq": "weekly", "priority": "0.9", "lastmod": hoje})
+    urls.append({"loc": f"{BASE_URL}/calculadora-remuneracao-ferias/", "changefreq": "monthly", "priority": "0.8", "lastmod": hoje})
     urls.append({"loc": f"{BASE_URL}/cotacao-dolar/", "changefreq": "daily", "priority": "0.7", "lastmod": hoje})
 
     estados = query("SELECT feriado_estado_uf AS uf FROM feriado_estados ORDER BY feriado_estado_uf")
