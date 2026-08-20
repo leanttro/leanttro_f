@@ -35,6 +35,7 @@ import psycopg2.extras
 import requests
 from dotenv import load_dotenv
 from werkzeug.middleware.proxy_fix import ProxyFix
+from groq import Groq
 
 load_dotenv()
 
@@ -52,6 +53,18 @@ BASE_URL = os.getenv("BASE_URL", "https://www.feriados2027.com.br").rstrip("/")
 
 # Opções de dias de férias oferecidas na calculadora (dropdown/botões)
 DIAS_FERIAS_OPCOES = [5, 10, 15, 20, 30]
+
+# Cliente GROQ pro chat — criado uma vez só (não a cada request).
+# Se a chave não estiver configurada, fica None e o endpoint /api/chat/
+# devolve um erro amigável em vez de derrubar o app inteiro.
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+_groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
+
+# Modelo usado no chat. mixtral-8x7b-32768 e os antigos llama-3.x foram
+# descontinuados pela Groq — openai/gpt-oss-20b é o atual (rápido e
+# disponível no free tier). Pra respostas um pouco melhores, troque
+# por "openai/gpt-oss-120b" (mais lento, mais caro).
+GROQ_MODEL_CHAT = os.getenv("GROQ_MODEL_CHAT", "openai/gpt-oss-20b")
 
 # Quantos negócios por página nas listagens de /turismo/ (numerada, ?pagina=N)
 NEGOCIOS_POR_PAGINA = 24
@@ -512,6 +525,110 @@ def _contar_negocios_turismo(categoria_id=None, ibge_code=None):
         params.append(ibge_code)
     linha = query(sql, tuple(params), one=True)
     return linha["total"] if linha else 0
+
+
+# ── Chat (GROQ) ────────────────────────────────────────────────
+# Cache simples em memória do contexto do banco, pra não bater no
+# banco a cada pergunta do chat. Expira sozinho depois de alguns
+# minutos (o site não muda tão rápido assim).
+
+_CACHE_CONTEXTO_CHAT = {"texto": None, "hora": 0}
+_CACHE_CONTEXTO_CHAT_TTL_SEGUNDOS = 600  # 10 minutos
+
+
+def _obter_contexto_banco():
+    """
+    Busca dados do banco para fornecer contexto ao chatbot.
+    Retorna um resumo de feriados nacionais, estados, categorias de
+    turismo e cidades com mais negócios cadastrados.
+
+    Usa cache em memória (TTL de 10 min) pra não fazer 4 queries a
+    cada pergunta — o chat pode receber várias perguntas seguidas do
+    mesmo visitante.
+    """
+    agora = time.time()
+    if (
+        _CACHE_CONTEXTO_CHAT["texto"]
+        and (agora - _CACHE_CONTEXTO_CHAT["hora"]) < _CACHE_CONTEXTO_CHAT_TTL_SEGUNDOS
+    ):
+        return _CACHE_CONTEXTO_CHAT["texto"]
+
+    try:
+        # Próximos feriados nacionais/comemorativos do ano em foco
+        # (tabela real é feriado_feriados — coluna feriado_ano já
+        # existe, não precisa de YEAR(feriado_data), que é sintaxe
+        # MySQL e não existe no Postgres).
+        feriados = query(
+            """SELECT
+                feriado_data AS data,
+                feriado_nome AS nome,
+                feriado_tipo AS tipo,
+                feriado_uf AS estado
+            FROM feriado_feriados
+            WHERE feriado_ano = %s
+            ORDER BY feriado_data
+            LIMIT 50""",
+            (ANO_PRINCIPAL,)
+        )
+
+        # Estados cadastrados
+        estados = query(
+            """SELECT feriado_estado_nome AS nome, feriado_estado_uf AS uf
+            FROM feriado_estados
+            ORDER BY feriado_estado_nome"""
+        )
+
+        # Categorias de turismo com contagem de negócios ativos
+        categorias = query(
+            """SELECT c.feriado_categoria_nome AS nome, COUNT(n.feriado_negocio_id) AS quantidade
+            FROM feriado_categorias c
+            LEFT JOIN feriado_negocios n
+                ON n.feriado_negocio_categoria_id = c.feriado_categoria_id
+                AND n.feriado_negocio_ativo = true
+            WHERE c.feriado_categoria_ativo = true
+            GROUP BY c.feriado_categoria_id, c.feriado_categoria_nome
+            ORDER BY quantidade DESC
+            LIMIT 10"""
+        )
+
+        # Cidades com mais negócios de turismo ativos
+        cidades_turismo = query(
+            """SELECT
+                m.feriado_municipio_nome AS cidade,
+                m.feriado_municipio_uf AS uf,
+                COUNT(DISTINCT n.feriado_negocio_id) AS total_negocios
+            FROM feriado_negocios n
+            JOIN feriado_municipios m
+                ON m.feriado_municipio_ibge_code = n.feriado_negocio_ibge_code
+            WHERE n.feriado_negocio_ativo = true
+            GROUP BY m.feriado_municipio_ibge_code, m.feriado_municipio_nome, m.feriado_municipio_uf
+            ORDER BY total_negocios DESC
+            LIMIT 10"""
+        )
+
+        # Monta o contexto formatado
+        contexto_texto = f"""
+# Banco de Dados - Feriados {ANO_PRINCIPAL}
+
+## Estados Disponíveis:
+{', '.join([e['nome'] + ' (' + e['uf'] + ')' for e in estados[:10]])}
+
+## Principais Categorias de Turismo:
+{chr(10).join([f"- {c['nome']}: {c['quantidade']} negócios" for c in categorias if c['quantidade']]) or '- (nenhuma categoria com negócios cadastrados ainda)'}
+
+## Cidades com Mais Negócios de Turismo:
+{chr(10).join([f"- {c['cidade']}, {c['uf']}: {c['total_negocios']} negócios" for c in cidades_turismo]) or '- (nenhum negócio cadastrado ainda)'}
+
+## Próximos Feriados (amostra):
+{chr(10).join([f"- {f['data'].strftime('%d/%m/%Y')}: {f['nome']} ({f['tipo']}) {f['estado'] if f['estado'] else '(Nacional)'}" for f in feriados[:10]]) or '- (nenhum feriado cadastrado para este ano)'}
+"""
+        _CACHE_CONTEXTO_CHAT["texto"] = contexto_texto
+        _CACHE_CONTEXTO_CHAT["hora"] = agora
+        return contexto_texto
+
+    except Exception as e:
+        app.logger.exception("Erro ao buscar contexto do banco pro chat: %s", e)
+        return "Não consegui acessar os dados do banco no momento."
 
 
 def _listar_negocios_turismo(categoria_id=None, ibge_code=None, pagina=1,
@@ -1336,6 +1453,68 @@ def robots():
         f"Sitemap: {BASE_URL}/sitemap.xml\n"
     )
     return Response(conteudo, mimetype="text/plain")
+
+
+@app.route("/api/chat/", methods=["POST"])
+def api_chat():
+    """
+    Endpoint de chat que integra GROQ com dados do banco.
+
+    POST /api/chat/
+    Body: { "pergunta": "Qual é o próximo feriado?" }
+    Response: { "resposta": "..." }
+    """
+    data = request.get_json(silent=True) or {}
+    pergunta = (data.get("pergunta") or "").strip()
+
+    if not pergunta:
+        return jsonify({"resposta": "Por favor, faça uma pergunta!"})
+
+    # Limita o tamanho da pergunta para evitar spam / prompt gigante
+    if len(pergunta) > 500:
+        return jsonify({"resposta": "Sua pergunta é muito longa. Tente uma mais curta."})
+
+    if _groq_client is None:
+        app.logger.error("Chat chamado sem GROQ_API_KEY configurada no .env")
+        return jsonify({"resposta": "Erro: chat temporariamente indisponível."}), 500
+
+    # Busca contexto do banco (com cache — ver _obter_contexto_banco)
+    contexto_banco = _obter_contexto_banco()
+
+    prompt_sistema = f"""Você é um assistente amigável sobre feriados e negócios locais no Brasil, do site feriados{ANO_PRINCIPAL}.com.br.
+
+Você tem acesso aos seguintes dados:
+
+{contexto_banco}
+
+Instruções:
+- Seja sempre amigável e útil
+- Responda em português brasileiro
+- Se a pergunta é sobre feriados, forneça a data exata se disponível
+- Se é sobre turismo/negócios, recomende as categorias e cidades disponíveis
+- Se não souber, diga com honestidade que não encontrou essa informação
+- Respostas devem ser concisas (máximo 2-3 frases)
+- Use emojis quando apropriado
+- Nunca invente feriados, datas ou negócios que não estejam nos dados acima
+"""
+
+    try:
+        response = _groq_client.chat.completions.create(
+            model=GROQ_MODEL_CHAT,
+            messages=[
+                {"role": "system", "content": prompt_sistema},
+                {"role": "user", "content": pergunta},
+            ],
+            max_tokens=300,
+            temperature=0.7,
+            top_p=0.9,
+        )
+        resposta = response.choices[0].message.content.strip()
+        return jsonify({"resposta": resposta})
+
+    except Exception as e:
+        app.logger.exception("Erro no chat (GROQ): %s", e)
+        return jsonify({"resposta": "Desculpe, algo deu errado. Tente novamente em instantes."}), 500
 
 
 if __name__ == "__main__":
