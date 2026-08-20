@@ -132,7 +132,7 @@
         </label>
       </div>
       <p style="font-size: 12px; color: var(--texto-claro); margin-top: 8px;">
-        💡 Abono pecuniário = 1/3 do salário para cada 10 dias vendidos. Entra na base de IRRF.
+        💡 O valor principal do abono é isento de INSS e IRRF. Só o 1/3 constitucional sobre o abono entra na base do IRRF.
       </p>
     </div>
 
@@ -225,15 +225,63 @@
       <strong>1/3 Constitucional:</strong> bônus de férias garantido pela Constituição. Salário × 1/3.
     </li>
     <li style="margin-bottom: 8px;">
-      <strong>Abono pecuniário:</strong> até 10 dias podem ser vendidos (convertidos em dinheiro). Máximo 1/3 do período.
+      <strong>Abono pecuniário:</strong> até 1/3 do período (10 dias, se o direito for a 30) pode ser vendido. O valor principal é isento de INSS e IRRF — só o 1/3 constitucional sobre ele entra na base do IRRF.
     </li>
     <li style="margin-bottom: 8px;">
-      <strong>INSS e IRRF:</strong> descontados sobre o bruto das férias com base nas alíquotas e no teto oficiais de 2026.
+      <strong>INSS:</strong> incide só sobre as férias gozadas + seu 1/3 constitucional (não sobre o abono).
     </li>
     <li style="margin-bottom: 8px;">
-      <strong>Novidade 2026:</strong> pela Lei nº 15.270/2025, quem recebe até R$ 5.000,00 no mês está isento de IRRF, com redução gradual até R$ 7.350,00. Essa calculadora já aplica essa regra.
+      <strong>IRRF:</strong> incide sobre férias gozadas + seu 1/3 + o 1/3 do abono, descontando o INSS e a dedução por dependente ou o desconto simplificado (o que for maior).
+    </li>
+    <li style="margin-bottom: 8px;">
+      <strong>Novidade 2026:</strong> pela Lei nº 15.270/2025, quem recebe até R$ 5.000,00 de renda tributável no mês está isento de IRRF, com redução gradual até R$ 7.350,00. Essa calculadora já aplica essa regra.
     </li>
   </ul>
+</div>
+
+<!-- ── TRANSPARÊNCIA DAS TABELAS ──────────────────────────── -->
+<div class="card">
+  <h2>Tabelas usadas neste cálculo</h2>
+  <p style="font-size: 13px; color: var(--texto-claro); margin-bottom: 14px;">
+    Atualizado em agosto/2026, com base nas tabelas oficiais vigentes para o ano-calendário 2026:
+    Portaria Interministerial MPS/MF nº 13/2026 (INSS), tabela progressiva mensal do IRRF divulgada pela
+    Receita Federal, e Lei nº 15.270/2025 (redutor/isenção do IRRF até R$ 5.000). Consulte sempre as fontes
+    oficiais (<a href="https://www.gov.br/inss/" target="_blank" rel="noopener">gov.br/inss</a> e
+    <a href="https://www.gov.br/receitafederal/" target="_blank" rel="noopener">gov.br/receitafederal</a>)
+    caso as alíquotas sejam reajustadas.
+  </p>
+
+  <h3 style="font-size: 15px; margin-bottom: 6px;">Faixas do INSS (2026)</h3>
+  <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px;">
+    <tr style="border-bottom: 1px solid var(--borda); font-weight: 700;">
+      <td style="padding: 6px 0;">Salário de contribuição</td>
+      <td style="padding: 6px 0; text-align: right;">Alíquota</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--borda);"><td style="padding: 6px 0;">até R$ 1.621,00</td><td style="padding: 6px 0; text-align: right;">7,5%</td></tr>
+    <tr style="border-bottom: 1px solid var(--borda);"><td style="padding: 6px 0;">R$ 1.621,01 a R$ 2.902,84</td><td style="padding: 6px 0; text-align: right;">9%</td></tr>
+    <tr style="border-bottom: 1px solid var(--borda);"><td style="padding: 6px 0;">R$ 2.902,85 a R$ 4.354,27</td><td style="padding: 6px 0; text-align: right;">12%</td></tr>
+    <tr><td style="padding: 6px 0;">R$ 4.354,28 a R$ 8.475,55 (teto)</td><td style="padding: 6px 0; text-align: right;">14%</td></tr>
+  </table>
+
+  <h3 style="font-size: 15px; margin-bottom: 6px;">Faixas do IRRF (2026)</h3>
+  <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px;">
+    <tr style="border-bottom: 1px solid var(--borda); font-weight: 700;">
+      <td style="padding: 6px 0;">Base de cálculo</td>
+      <td style="padding: 6px 0; text-align: right;">Alíquota</td>
+      <td style="padding: 6px 0; text-align: right;">Dedução</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--borda);"><td style="padding: 6px 0;">até R$ 2.428,80</td><td style="padding: 6px 0; text-align: right;">Isento</td><td style="padding: 6px 0; text-align: right;">—</td></tr>
+    <tr style="border-bottom: 1px solid var(--borda);"><td style="padding: 6px 0;">R$ 2.428,81 a R$ 2.826,65</td><td style="padding: 6px 0; text-align: right;">7,5%</td><td style="padding: 6px 0; text-align: right;">R$ 182,16</td></tr>
+    <tr style="border-bottom: 1px solid var(--borda);"><td style="padding: 6px 0;">R$ 2.826,66 a R$ 3.751,05</td><td style="padding: 6px 0; text-align: right;">15%</td><td style="padding: 6px 0; text-align: right;">R$ 394,16</td></tr>
+    <tr style="border-bottom: 1px solid var(--borda);"><td style="padding: 6px 0;">R$ 3.751,06 a R$ 4.664,68</td><td style="padding: 6px 0; text-align: right;">22,5%</td><td style="padding: 6px 0; text-align: right;">R$ 675,49</td></tr>
+    <tr><td style="padding: 6px 0;">acima de R$ 4.664,68</td><td style="padding: 6px 0; text-align: right;">27,5%</td><td style="padding: 6px 0; text-align: right;">R$ 908,73</td></tr>
+  </table>
+
+  <p style="font-size: 13px; color: var(--texto-claro); margin: 0;">
+    <strong>Dedução por dependente:</strong> R$ 189,59/mês.
+    <strong>Desconto simplificado:</strong> R$ 607,20/mês (usado automaticamente no lugar da dedução por dependentes quando for mais vantajoso).
+    <strong>Redutor Lei 15.270/2025:</strong> R$ 978,62 − (0,133145 × renda tributável), aplicado até R$ 7.350,00 de renda no mês.
+  </p>
 </div>
 
 <script>
@@ -302,12 +350,23 @@ function calcularINSS(salario) {
   return inss;
 }
 
-function calcularIRRF(rendaBruta, inss, dependentes = 0) {
-  // Base de cálculo = renda bruta − INSS − dedução por dependente
-  const deducaoDependentes = dependentes * VALOR_DEPENDENTE_IRRF_2026;
-  const baseCalculo = rendaBruta - inss - deducaoDependentes;
+const DESCONTO_SIMPLIFICADO_IRRF_2026 = 607.20;
 
-  if (baseCalculo <= 0) return 0;
+function calcularIRRF(rendaTributavel, inss, dependentes = 0) {
+  // A "renda bruta mensal" usada no redutor da Lei 15.270/2025 é a renda
+  // tributável do pagamento (já sem o principal do abono, que é isento).
+  const rendaBrutaParaRedutor = rendaTributavel;
+
+  const deducaoDependentes = dependentes * VALOR_DEPENDENTE_IRRF_2026;
+  // A folha de pagamento aplica automaticamente a dedução mais vantajosa
+  // pro trabalhador: as deduções legais (dependentes) OU o desconto
+  // simplificado fixo de R$607,20 — o que for maior.
+  const deducaoUsada = deducaoDependentes >= DESCONTO_SIMPLIFICADO_IRRF_2026 ? 'legal' : 'simplificado';
+  const outraDeducao = Math.max(deducaoDependentes, DESCONTO_SIMPLIFICADO_IRRF_2026);
+
+  const baseCalculo = rendaTributavel - inss - outraDeducao;
+
+  if (baseCalculo <= 0) return { irrf: 0, deducaoUsada };
 
   let irrfBruto = 0;
   for (let i = 0; i < ALIQUOTA_IRRF_2026.length; i++) {
@@ -320,16 +379,16 @@ function calcularIRRF(rendaBruta, inss, dependentes = 0) {
   irrfBruto = Math.max(0, irrfBruto);
 
   // Redutor da Lei nº 15.270/2025: zera o imposto até R$5.000/mês de renda
-  // bruta e reduz progressivamente até R$7.350/mês. Nunca gera crédito
-  // (não pode deixar o IRRF negativo).
-  if (rendaBruta <= REDUTOR_IRRF_2026_TETO_RENDA) {
-    let redutor = REDUTOR_IRRF_2026_BASE - (REDUTOR_IRRF_2026_FATOR * rendaBruta);
+  // bruta tributável e reduz progressivamente até R$7.350/mês. Nunca gera
+  // crédito (não pode deixar o IRRF negativo).
+  if (rendaBrutaParaRedutor <= REDUTOR_IRRF_2026_TETO_RENDA) {
+    let redutor = REDUTOR_IRRF_2026_BASE - (REDUTOR_IRRF_2026_FATOR * rendaBrutaParaRedutor);
     redutor = Math.max(0, redutor);
     redutor = Math.min(redutor, irrfBruto);
     irrfBruto -= redutor;
   }
 
-  return irrfBruto;
+  return { irrf: irrfBruto, deducaoUsada };
 }
 
 function formatarMoeda(valor) {
@@ -378,34 +437,49 @@ document.getElementById('form-ferias').addEventListener('submit', function(e) {
     return;
   }
 
-  // Cálculos
-  let diasFerias = 30;
-
-  // Se proporcionais, calcular dias
+  // ── Cálculos ──────────────────────────────────────────────
+  // Dias de férias a que o trabalhador tem direito (antes de vender)
+  let diasDireito = 30;
   if (tipoFerias === 'proporcionais') {
-    diasFerias = Math.floor((mesesTrabalhados * 30) / 12);
+    // Cada mês trabalhado (com ≥15 dias) = 1/12 avos = 30/12 = 2,5 dias
+    diasDireito = Math.floor((mesesTrabalhados * 30) / 12);
   }
+  diasDireito -= faltasInjustificadas;
+  diasDireito = Math.max(0, diasDireito);
 
-  // Descontar faltas injustificadas
-  diasFerias -= faltasInjustificadas;
-  diasFerias = Math.max(0, diasFerias);
-
-  // Bruto das férias = (salário / 30) × dias × (1 + 1/3)
-  const brutoDiaria = salarioBruto / 30;
-  const brutoDiasFerias = (brutoDiaria * diasFerias) * (4/3);
-
-  // Abono pecuniário
-  let bruteAbono = 0;
+  // Abono pecuniário: por lei, o máximo vendável é 1/3 do período a que o
+  // trabalhador tem direito (10 dias só quando há direito a 30 completos).
+  let diasVendidos = 0;
   if (abono === 'sim10') {
-    bruteAbono = (brutoDiaria * 10) / 3; // 1/3 de 10 dias
+    diasVendidos = Math.min(10, Math.floor(diasDireito / 3));
   }
+  const diasGozados = diasDireito - diasVendidos;
 
-  // Total bruto
-  const brutoCombinado = brutoDiasFerias + bruteAbono;
+  const remuneracaoDiaria = salarioBruto / 30;
 
-  // Descontos
-  const inss = calcularINSS(brutoCombinado);
-  const irrf = calcularIRRF(brutoCombinado, inss, dependentes);
+  // Férias gozadas + 1/3 constitucional — incide INSS e IRRF
+  const remuneracaoFeriasGozadas = remuneracaoDiaria * diasGozados;
+  const tercoFeriasGozadas = remuneracaoFeriasGozadas / 3;
+
+  // Abono pecuniário: o principal é isento de INSS e IRRF.
+  // Só o 1/3 constitucional sobre o abono entra na base do IRRF (não do INSS).
+  const abonoPecuniario = remuneracaoDiaria * diasVendidos;
+  const tercoAbono = abonoPecuniario / 3;
+
+  // Total que a pessoa efetivamente recebe
+  const brutoCombinado = remuneracaoFeriasGozadas + tercoFeriasGozadas + abonoPecuniario + tercoAbono;
+
+  // Base do INSS: só férias gozadas + seu 1/3 (abono e o 1/3 dele são isentos)
+  const baseINSS = remuneracaoFeriasGozadas + tercoFeriasGozadas;
+  const inss = calcularINSS(baseINSS);
+
+  // Base do IRRF: férias gozadas + seu 1/3 + o 1/3 do abono
+  // (o principal do abono continua fora, pois é isento também de IRRF)
+  const rendaTributavelIRRF = remuneracaoFeriasGozadas + tercoFeriasGozadas + tercoAbono;
+  const irrfResultado = calcularIRRF(rendaTributavelIRRF, inss, dependentes);
+  const irrf = irrfResultado.irrf;
+  const deducaoUsada = irrfResultado.deducaoUsada;
+
   const totalDescontos = inss + irrf;
   const liquido = brutoCombinado - totalDescontos;
 
@@ -420,17 +494,31 @@ document.getElementById('form-ferias').addEventListener('submit', function(e) {
       <td style="padding: 8px 0; text-align: right; font-weight: 600;">${formatarMoeda(salarioBruto)}</td>
     </tr>
     <tr style="border-bottom: 1px solid var(--borda);">
-      <td style="padding: 8px 0;">Dias de férias (${tipoFerias === 'completas' ? '30 dias completos' : mesesTrabalhados + ' meses'})${faltasInjustificadas > 0 ? ' − ' + faltasInjustificadas + ' falta(s)' : ''}</td>
-      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${diasFerias} dias</td>
+      <td style="padding: 8px 0;">Dias de férias a que tem direito${tipoFerias === 'proporcionais' ? ' (' + mesesTrabalhados + ' meses)' : ''}${faltasInjustificadas > 0 ? ' − ' + faltasInjustificadas + ' falta(s)' : ''}</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${diasDireito} dias</td>
+    </tr>
+    ${diasVendidos > 0 ? `
+    <tr style="border-bottom: 1px solid var(--borda);">
+      <td style="padding: 8px 0;">Dias gozados / vendidos</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${diasGozados} gozados + ${diasVendidos} vendidos</td>
+    </tr>
+    ` : ''}
+    <tr style="border-bottom: 1px solid var(--borda);">
+      <td style="padding: 8px 0;">Férias gozadas (${diasGozados} dias)</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${formatarMoeda(remuneracaoFeriasGozadas)}</td>
     </tr>
     <tr style="border-bottom: 1px solid var(--borda);">
-      <td style="padding: 8px 0;">Bruto das férias (com 1/3 constitucional)</td>
-      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${formatarMoeda(brutoDiasFerias)}</td>
+      <td style="padding: 8px 0;">1/3 constitucional sobre férias gozadas</td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${formatarMoeda(tercoFeriasGozadas)}</td>
     </tr>
-    ${bruteAbono > 0 ? `
+    ${diasVendidos > 0 ? `
     <tr style="border-bottom: 1px solid var(--borda);">
-      <td style="padding: 8px 0;">Abono pecuniário (10 dias)</td>
-      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${formatarMoeda(bruteAbono)}</td>
+      <td style="padding: 8px 0;">Abono pecuniário (${diasVendidos} dias vendidos) <span style="font-size: 11px; color: var(--texto-claro);">— isento de INSS e IRRF</span></td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${formatarMoeda(abonoPecuniario)}</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--borda);">
+      <td style="padding: 8px 0;">1/3 constitucional sobre o abono <span style="font-size: 11px; color: var(--texto-claro);">— isento de INSS, tributável no IRRF</span></td>
+      <td style="padding: 8px 0; text-align: right; font-weight: 600;">${formatarMoeda(tercoAbono)}</td>
     </tr>
     ` : ''}
     <tr style="border-bottom: 2px solid var(--azul-medio); background: var(--azul-claro);">
@@ -438,11 +526,11 @@ document.getElementById('form-ferias').addEventListener('submit', function(e) {
       <td style="padding: 8px 0; text-align: right; font-weight: 700; font-size: 18px;">${formatarMoeda(brutoCombinado)}</td>
     </tr>
     <tr style="border-bottom: 1px solid var(--borda);">
-      <td style="padding: 8px 0; color: var(--texto-claro);">INSS (2026)</td>
+      <td style="padding: 8px 0; color: var(--texto-claro);">INSS (2026) <span style="font-size: 11px;">sobre ${formatarMoeda(baseINSS)}</span></td>
       <td style="padding: 8px 0; text-align: right; font-weight: 600; color: var(--vermelho);">− ${formatarMoeda(inss)}</td>
     </tr>
     <tr style="border-bottom: 1px solid var(--borda);">
-      <td style="padding: 8px 0; color: var(--texto-claro);">IRRF (2026)${dependentes > 0 ? ' (' + dependentes + ' dep.)' : ''}</td>
+      <td style="padding: 8px 0; color: var(--texto-claro);">IRRF (2026)${dependentes > 0 ? ' (' + dependentes + ' dep.)' : ''} <span style="font-size: 11px;">dedução: ${deducaoUsada === 'simplificado' ? 'desconto simplificado R$ 607,20' : 'legal (INSS + dependentes)'}</span></td>
       <td style="padding: 8px 0; text-align: right; font-weight: 600; color: var(--vermelho);">− ${formatarMoeda(irrf)}</td>
     </tr>
     <tr style="background: var(--verde-claro);">
