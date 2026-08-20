@@ -515,12 +515,44 @@ def _contar_negocios_turismo(categoria_id=None, ibge_code=None):
 
 
 def _listar_negocios_turismo(categoria_id=None, ibge_code=None, pagina=1,
-                              por_pagina=NEGOCIOS_POR_PAGINA, excluir_id=None):
-    """Lista negócios ordenados por nome (comportamento padrão — a
-    ordenação por distância acontece no CLIENTE, via JS, depois que o
-    usuário libera geolocalização; ver _turismo_negocios_secao.html)."""
-    sql = "SELECT " + _NEGOCIO_CAMPOS_SQL + _NEGOCIO_FROM_SQL
-    params = []
+                              por_pagina=NEGOCIOS_POR_PAGINA, excluir_id=None,
+                              lat=None, lng=None):
+    """Lista negócios.
+
+    Sem lat/lng: ordena por nome (comportamento padrão, sem geolocalização).
+
+    Com lat/lng: ordena pela distância REAL (Haversine) já dentro do
+    SQL, antes do LIMIT/OFFSET — CORRIGIDO em 19/08/2026. Antes disso,
+    a ordenação por distância só acontecia no JS, DEPOIS que o banco já
+    tinha cortado pra 24 registros em ordem alfabética — então um
+    negócio próximo que não caísse nesses 24 primeiros (alfabeticamente)
+    nunca aparecia como "mais próximo", nem existindo fisicamente perto
+    do usuário. Agora o banco já devolve os mais próximos de verdade.
+    Negócios sem lat/lng cadastrado vão pro final da lista (não somem).
+    """
+    sql = "SELECT " + _NEGOCIO_CAMPOS_SQL
+    params_select = []
+
+    usar_distancia = lat is not None and lng is not None
+    if usar_distancia:
+        sql += """,
+            CASE WHEN n.feriado_negocio_lat IS NULL OR n.feriado_negocio_lng IS NULL
+                 THEN NULL
+                 ELSE (
+                    6371 * acos(
+                        LEAST(1.0, GREATEST(-1.0,
+                            cos(radians(%s)) * cos(radians(n.feriado_negocio_lat)) *
+                            cos(radians(n.feriado_negocio_lng) - radians(%s)) +
+                            sin(radians(%s)) * sin(radians(n.feriado_negocio_lat))
+                        ))
+                    )
+                 )
+            END AS negocio_distancia_km
+        """
+        params_select = [lat, lng, lat]
+
+    sql += _NEGOCIO_FROM_SQL
+    params = list(params_select)
     if categoria_id is not None:
         sql += " AND n.feriado_negocio_categoria_id = %s"
         params.append(categoria_id)
@@ -530,7 +562,15 @@ def _listar_negocios_turismo(categoria_id=None, ibge_code=None, pagina=1,
     if excluir_id is not None:
         sql += " AND n.feriado_negocio_id != %s"
         params.append(excluir_id)
-    sql += " ORDER BY n.feriado_negocio_nome LIMIT %s OFFSET %s"
+
+    if usar_distancia:
+        # NULLS LAST -> quem não tem lat/lng cadastrado não desaparece,
+        # só fica no fim da lista em vez de sumir da busca.
+        sql += " ORDER BY negocio_distancia_km ASC NULLS LAST, n.feriado_negocio_nome"
+    else:
+        sql += " ORDER BY n.feriado_negocio_nome"
+
+    sql += " LIMIT %s OFFSET %s"
     params += [por_pagina, (pagina - 1) * por_pagina]
     return query(sql, tuple(params))
 
@@ -566,6 +606,14 @@ def _negocios_para_json(negocios):
             "cidadeNome": n["cidade_nome"] or n["negocio_cidade_texto"],
             "lat": float(n["negocio_lat"]) if n["negocio_lat"] is not None else None,
             "lng": float(n["negocio_lng"]) if n["negocio_lng"] is not None else None,
+            # só existe quando a listagem foi pedida com lat/lng (ver
+            # _listar_negocios_turismo) — o JS pode usar direto pra
+            # exibir "a X km", sem precisar recalcular no cliente.
+            "distanciaKm": (
+                round(float(n["negocio_distancia_km"]), 1)
+                if "negocio_distancia_km" in n.keys() and n["negocio_distancia_km"] is not None
+                else None
+            ),
         }
         for n in negocios
     ]
@@ -932,18 +980,52 @@ def pagina_cidade(uf, cidade_slug):
 # A cidade é uma forma de NAVEGAR até o negócio; a URL indexada (a que
 # entra no sitemap, canonical, JSON-LD etc.) é sempre a de categoria.
 
+@app.route("/api/turismo/proximos")
+def api_turismo_proximos():
+    """JSON dos negócios mais próximos de verdade (ordenados por
+    distância no banco). O front chama isso via fetch assim que
+    navigator.geolocation devolve lat/lng — em vez de só reordenar os
+    24 que já vieram na primeira leva (essa era a causa do bug de
+    'perto de mim' não achar negócio que existia perto)."""
+    lat = request.args.get("lat", type=float)
+    lng = request.args.get("lng", type=float)
+    if lat is None or lng is None:
+        return jsonify({"erro": "parâmetros lat e lng são obrigatórios"}), 400
+
+    categoria_slug = request.args.get("categoria")
+    categoria_id = None
+    if categoria_slug:
+        categoria = query(
+            "SELECT feriado_categoria_id AS id FROM feriado_categorias "
+            "WHERE feriado_categoria_slug = %s AND feriado_categoria_ativo = true",
+            (categoria_slug,), one=True,
+        )
+        if not categoria:
+            return jsonify({"erro": "categoria não encontrada"}), 404
+        categoria_id = categoria["id"]
+
+    pagina = request.args.get("pagina", default=1, type=int)
+    if pagina < 1:
+        pagina = 1
+
+    negocios = _listar_negocios_turismo(categoria_id=categoria_id, pagina=pagina, lat=lat, lng=lng)
+    return jsonify(_negocios_para_json(negocios))
+
+
 @app.route("/turismo/")
 def turismo_index():
     pagina = request.args.get("pagina", default=1, type=int)
     if pagina < 1:
         pagina = 1
+    lat = request.args.get("lat", type=float)
+    lng = request.args.get("lng", type=float)
 
     total = _contar_negocios_turismo()
     total_paginas = max(1, math.ceil(total / NEGOCIOS_POR_PAGINA))
     pagina = min(pagina, total_paginas)
 
     categorias = _categorias_turismo()
-    negocios = _listar_negocios_turismo(pagina=pagina)
+    negocios = _listar_negocios_turismo(pagina=pagina, lat=lat, lng=lng)
 
     return render_template(
         "turismo_index.html",
@@ -975,13 +1057,15 @@ def turismo_categoria(categoria_slug):
     pagina = request.args.get("pagina", default=1, type=int)
     if pagina < 1:
         pagina = 1
+    lat = request.args.get("lat", type=float)
+    lng = request.args.get("lng", type=float)
 
     total = _contar_negocios_turismo(categoria_id=categoria["id"])
     total_paginas = max(1, math.ceil(total / NEGOCIOS_POR_PAGINA))
     pagina = min(pagina, total_paginas)
 
     categorias = _categorias_turismo()
-    negocios = _listar_negocios_turismo(categoria_id=categoria["id"], pagina=pagina)
+    negocios = _listar_negocios_turismo(categoria_id=categoria["id"], pagina=pagina, lat=lat, lng=lng)
 
     return render_template(
         "turismo_categoria.html",
@@ -1093,12 +1177,14 @@ def pagina_cidade_turismo(uf, cidade_slug):
     pagina = request.args.get("pagina", default=1, type=int)
     if pagina < 1:
         pagina = 1
+    lat = request.args.get("lat", type=float)
+    lng = request.args.get("lng", type=float)
 
     total = _contar_negocios_turismo(ibge_code=cidade["ibge_code"])
     total_paginas = max(1, math.ceil(total / NEGOCIOS_POR_PAGINA))
     pagina = min(pagina, total_paginas)
 
-    negocios = _listar_negocios_turismo(ibge_code=cidade["ibge_code"], pagina=pagina)
+    negocios = _listar_negocios_turismo(ibge_code=cidade["ibge_code"], pagina=pagina, lat=lat, lng=lng)
 
     return render_template(
         "cidade_turismo.html",
