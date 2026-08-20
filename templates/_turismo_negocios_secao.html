@@ -229,7 +229,7 @@
     });
   }
 
-  // ── Geolocalização: ordena por distância (carrossel + grade) ──
+  // ── Geolocalização: carrega TODOS os negócios ordenados por distância ──
   botaoGeo.addEventListener('click', function () {
     if (!('geolocation' in navigator)) {
       botaoGeo.textContent = '📍 Geolocalização indisponível';
@@ -243,20 +243,25 @@
       var lat = pos.coords.latitude;
       var lng = pos.coords.longitude;
 
-      NEGOCIOS.forEach(function (n) {
-        n._distanciaKm = (n.lat != null && n.lng != null)
-          ? haversineKm(lat, lng, n.lat, n.lng)
-          : null;
-      });
+      // ✅ NOVO: Faz fetch ao endpoint /api/turismo/proximos
+      // que retorna TODOS os negócios ordenados por distância real
+      fetch('/api/turismo/proximos?lat=' + lat + '&lng=' + lng)
+        .then(function (response) {
+          if (!response.ok) throw new Error('Erro ao buscar negócios próximos');
+          return response.json();
+        })
+        .then(function (data) {
+          // data vem como { negocios: [...] }
+          NEGOCIOS = data.negocios || data;
+          botaoGeo.textContent = '📍 Ordenado por distância';
+          renderizar();
+        })
+        .catch(function (err) {
+          console.error('Erro ao buscar proximos:', err);
+          botaoGeo.textContent = '📍 Erro ao buscar localização';
+          botaoGeo.disabled = false;
+        });
 
-      NEGOCIOS.sort(function (a, b) {
-        if (a._distanciaKm == null) return 1;
-        if (b._distanciaKm == null) return -1;
-        return a._distanciaKm - b._distanciaKm;
-      });
-
-      botaoGeo.textContent = '📍 Ordenado por distância';
-      renderizar();
     }, function () {
       botaoGeo.textContent = '📍 Não foi possível obter localização';
       botaoGeo.disabled = false;
