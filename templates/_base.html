@@ -67,8 +67,6 @@
     --azul-bebe-mais-forte: #90CAF9;
     --verde-escuro: #1B5E20;
     --verde-mais-escuro: #0D3817;
-    --verde: #10b981;
-    --verde-claro: #d1fae5;
     --texto: #1a1a1a;
     --texto-claro: #555555;
     --card: #ffffff;
@@ -77,8 +75,6 @@
     --azul: #2563eb;
     --azul-claro-tag: #dbeafe;
     --cinza-borda: #e0e0e0;
-    --borda: #e0e0e0;
-    --fundo-claro: #f8f9fa;
     --roxo: #9333ea;
     --roxo-claro: #f3e8ff;
     --laranja: #f97316;
@@ -127,6 +123,13 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
   
+  .marca img {
+    height: 160px;
+    width: auto;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    transition: transform 0.2s ease;
+  }
+  
   .marca a {
     color: var(--azul-escuro);
     text-decoration: none;
@@ -134,14 +137,8 @@
     flex-direction: row;
     gap: 12px;
     align-items: center;
+    text-align: left;
     cursor: pointer;
-  }
-
-  .marca img {
-    height: 160px;
-    width: auto;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-    transition: transform 0.2s ease;
   }
 
   .marca a:hover img {
@@ -294,40 +291,33 @@
     outline-offset: 2px;
   }
 
-  .link-turismo {
-    color: #fff;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 14px;
-    padding: 8px 16px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+  .controles select option {
+    color: #1a1a1a;
   }
 
-  .link-turismo:hover {
-    background: rgba(255,255,255,0.15);
-  }
-
+  /* ── Badge da cotação do dólar no header ─────────────────── */
   .badge-dolar {
-    background: rgba(255,255,255,0.15);
-    color: #fff;
-    padding: 8px 16px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 12px;
     display: flex;
+    align-items: center;
     gap: 6px;
-    transition: all 0.2s ease;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.35);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
     white-space: nowrap;
+    transition: background-color 0.2s ease;
   }
 
   .badge-dolar:hover {
-    background: rgba(255,255,255,0.25);
+    background: rgba(255,255,255,.25);
   }
 
-  .bd-label {
-    opacity: 0.8;
+  .badge-dolar .bd-label {
+    opacity: .8;
     font-weight: 500;
   }
 
@@ -337,277 +327,1205 @@
     padding: 32px 20px;
   }
 
+  /* ── CARDS ─────────────────────────────────────────────── */
   .card {
-    background: white;
-    border-radius: 12px;
-    padding: 32px;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px;
     margin-bottom: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: var(--sombra);
+    border: 1px solid rgba(13, 71, 161, 0.08);
+    transition: all 0.3s ease;
   }
 
-  .card h1 {
-    margin-top: 0;
-    font-size: 32px;
+  .card:hover {
+    box-shadow: 0 8px 24px rgba(13, 71, 161, 0.12);
   }
 
-  .card h2 {
-    font-size: 22px;
-    margin-top: 0;
-    margin-bottom: 16px;
-  }
-
-  .voltar {
-    display: inline-block;
-    color: var(--azul-medio);
-    text-decoration: none;
-    font-weight: 600;
-    margin-bottom: 16px;
-    font-size: 14px;
-  }
-
-  .voltar:hover {
-    text-decoration: underline;
-  }
-
+  /* ── GRID DE ESTADOS/CIDADES ─────────────────────────── */
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
   }
 
-  /* ── CHAT WIDGET ────────────────────────────────────────── */
-  #chat-widget {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 380px;
-    max-height: 600px;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    background: white;
-    display: flex;
-    flex-direction: column;
-    z-index: 9999;
-    font-family: inherit;
-  }
-
-  #chat-widget.minimizado {
-    width: 60px;
-    height: 60px;
-    max-height: none;
-  }
-
-  #chat-header {
-    background: linear-gradient(90deg, var(--azul-medio) 0%, var(--azul-escuro) 100%);
-    color: white;
-    padding: 16px;
-    border-radius: 12px 12px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-  }
-
-  #chat-widget.minimizado #chat-header {
-    border-radius: 50%;
-    padding: 0;
-    width: 60px;
-    height: 60px;
+  .grid a {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), #BBDEFB);
+    padding: 16px 12px;
+    border-radius: 14px;
+    text-decoration: none;
+    color: var(--verde-escuro);
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.1);
+    border: 1px solid rgba(13, 71, 161, 0.15);
+    transition: all 0.3s ease;
   }
 
-  #chat-header h3 {
-    margin: 0;
-    font-size: 16px;
+  .grid a:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(13, 71, 161, 0.2);
+    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), #90CAF9);
+  }
+
+  /* ── TÍTULOS ───────────────────────────────────────── */
+  h1 {
+    color: var(--verde-escuro);
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  h2 {
+    color: var(--verde-escuro);
+    font-size: 18px;
+    margin-top: 0;
+    margin-bottom: 16px;
     font-weight: 700;
   }
 
-  #chat-widget.minimizado #chat-header h3 {
-    display: none;
+  p {
+    color: var(--texto-claro);
+    line-height: 1.6;
+    margin: 0 0 16px 0;
   }
 
-  #chat-minimize-btn {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 20px;
-    padding: 0;
-    margin-left: auto;
-  }
-
-  #chat-widget.minimizado #chat-minimize-btn {
-    margin: 0;
-  }
-
-  #chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: #f8f9fa;
-  }
-
-  #chat-widget.minimizado #chat-messages {
-    display: none;
-  }
-
-  .chat-message {
-    display: flex;
-    gap: 8px;
-    animation: slideIn 0.3s ease;
-  }
-
-  .chat-message.user {
-    justify-content: flex-end;
-  }
-
-  .chat-message.bot {
-    justify-content: flex-start;
-  }
-
-  .chat-bubble {
-    max-width: 85%;
-    padding: 10px 14px;
-    border-radius: 12px;
+  .voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+    color: var(--verde-escuro);
+    font-weight: 700;
+    text-decoration: none;
     font-size: 14px;
-    line-height: 1.4;
-    word-wrap: break-word;
+    transition: all 0.3s ease;
   }
 
-  .chat-message.user .chat-bubble {
-    background: var(--azul-medio);
-    color: white;
-    border-bottom-right-radius: 4px;
+  .voltar:hover {
+    gap: 10px;
+    color: var(--verde-mais-escuro);
   }
 
-  .chat-message.bot .chat-bubble {
-    background: #e9ecef;
-    color: var(--texto);
-    border-bottom-left-radius: 4px;
+  .voltar::before {
+    content: "← ";
   }
 
-  .chat-typing {
+  /* ── FERIADOS ──────────────────────────────────────── */
+  .feriado-item {
     display: flex;
-    gap: 4px;
-    padding: 10px 14px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--azul-claro);
   }
 
-  .chat-typing span {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--azul-medio);
-    animation: bounce 1.4s infinite;
+  .feriado-item:last-child {
+    border-bottom: none;
   }
 
-  .chat-typing span:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-
-  .chat-typing span:nth-child(3) {
-    animation-delay: 0.4s;
-  }
-
-  @keyframes bounce {
-    0%, 80%, 100% {
-      opacity: 0.5;
-      transform: translateY(0);
-    }
-    40% {
-      opacity: 1;
-      transform: translateY(-8px);
-    }
-  }
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  #chat-input-area {
-    padding: 12px;
-    border-top: 1px solid var(--borda);
-    display: flex;
-    gap: 8px;
-  }
-
-  #chat-widget.minimizado #chat-input-area {
-    display: none;
-  }
-
-  #chat-input {
-    flex: 1;
-    border: 1px solid var(--borda);
+  .tag {
+    font-size: 11px;
+    padding: 4px 12px;
     border-radius: 20px;
-    padding: 8px 14px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
+    font-weight: 700;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
-  #chat-input:focus {
-    border-color: var(--azul-medio);
+  .tag-nacional {
+    background: var(--vermelho-claro);
+    color: var(--vermelho);
   }
 
-  #chat-send {
-    background: var(--azul-medio);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    cursor: pointer;
-    font-size: 16px;
+  .tag-estadual {
+    background: linear-gradient(135deg, rgba(27, 94, 32, 0.15), rgba(27, 94, 32, 0.1));
+    color: var(--verde-escuro);
+  }
+
+  .tag-municipal {
+    background: var(--azul-claro-tag);
+    color: var(--azul);
+  }
+
+  .tag-ponto_facultativo {
+    background: var(--roxo-claro);
+    color: var(--roxo);
+  }
+
+  .tag-comemorativa {
+    background: var(--laranja-claro);
+    color: var(--laranja);
+  }
+
+  /* ── PONTE/EMENDA ──────────────────────────────────── */
+  .ponte {
+    border-left: 4px solid var(--verde-escuro);
+    padding-left: 16px;
+    margin-bottom: 16px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .ponte .destaque {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--verde-escuro);
+  }
+
+  /* ── CALENDÁRIO (GRID DE 12 MESES) ─────────────────── */
+  .calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .mes-card {
+    background: var(--card);
+    border: 1px solid var(--azul-bebe);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .mes-card:hover {
+    box-shadow: 0 8px 20px rgba(13, 71, 161, 0.12);
+    border-color: var(--azul-bebe-mais-forte);
+  }
+
+  .mes-titulo {
+    font-weight: 800;
+    color: var(--verde-escuro);
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+
+  .dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    font-size: 10px;
+    color: #999;
+    text-align: center;
+    margin-bottom: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .grade-dias {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+
+  .dia-cell {
+    display: contents;
+  }
+
+  .dia {
+    aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    font-size: 12px;
+    border-radius: 10px;
+    color: #333;
+    font-weight: 600;
   }
 
-  #chat-send:hover {
-    background: var(--azul-escuro);
+  .dia.vazio {
+    visibility: hidden;
   }
 
-  #chat-send:disabled {
-    background: #ccc;
-    cursor: not-allowed;
+  .dia.feriado-nacional {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: var(--vermelho);
+    font-weight: 800;
+  }
+
+  .dia.feriado-estadual {
+    background: linear-gradient(135deg, rgba(27, 94, 32, 0.3), rgba(27, 94, 32, 0.15));
+    color: var(--verde-escuro);
+    font-weight: 800;
+  }
+
+  .dia.feriado-municipal {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: var(--azul);
+    font-weight: 800;
+  }
+
+  .dia.feriado-ponto_facultativo {
+    background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+    color: var(--roxo);
+    font-weight: 800;
+  }
+
+  .dia.feriado-comemorativa {
+    background: linear-gradient(135deg, #fed7aa, #fdba74);
+    color: var(--laranja);
+    font-weight: 800;
+  }
+
+  button.dia {
+    width: 100%;
+    border: 0;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s ease;
+  }
+
+  button.dia:hover,
+  button.dia:focus-visible,
+  button.dia[aria-expanded="true"] {
+    filter: brightness(0.95);
+    transform: scale(1.08);
+    outline: 2px solid rgba(27, 94, 32, 0.4);
+    outline-offset: -1px;
+  }
+
+  .lista-feriados-mes {
+    margin-top: 12px;
+    border-top: 1px dashed var(--azul-bebe);
+    padding-top: 10px;
+  }
+
+  .lista-feriados-mes .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .lista-feriados-mes .dia-num {
+    font-weight: 800;
+    color: var(--verde-escuro);
+    width: 20px;
+    flex-shrink: 0;
+    background: rgba(27, 94, 32, 0.1);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    font-size: 11px;
+  }
+
+  .lista-feriados-mes .nome-feriado {
+    flex: 1;
+    color: var(--texto);
+  }
+
+  .lista-feriados-mes .tag {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
+  .sem-feriados-mes {
+    font-size: 12px;
+    color: #bbb;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  .feriado-popover-panel {
+    position: fixed;
+    z-index: 1000;
+    width: min(340px, calc(100vw - 24px));
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    max-height: min(450px, calc(100vh - 24px));
+    overflow-y: auto;
+    border: 1px solid var(--azul-bebe);
+  }
+
+  .feriado-popover-panel .fp-close {
+    position: sticky;
+    float: right;
+    top: 8px;
+    right: 8px;
+    margin: 8px 8px 0 0;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--azul-claro), var(--azul-bebe-mais-forte));
+    color: var(--verde-escuro);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+
+  .feriado-popover-panel .fp-close:hover {
+    background: linear-gradient(135deg, var(--azul-bebe-mais-forte), #90CAF9);
+    color: #fff;
+    transform: rotate(90deg);
+  }
+
+  .feriado-info {
+    padding: 8px 20px 20px;
+    clear: both;
+  }
+
+  .feriado-info + .feriado-info {
+    border-top: 1px solid var(--azul-claro);
+    padding-top: 16px;
+  }
+
+  .fp-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    padding: 6px 14px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+
+  .fp-tag.tag-nacional {
+    background: var(--vermelho);
+  }
+
+  .fp-tag.tag-estadual {
+    background: var(--verde-escuro);
+  }
+
+  .fp-tag.tag-municipal {
+    background: var(--azul);
+  }
+
+  .fp-tag.tag-ponto_facultativo {
+    background: var(--roxo);
+  }
+
+  .fp-tag.tag-comemorativa {
+    background: var(--laranja);
+  }
+
+  .fp-nome {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--verde-escuro);
+  }
+
+  .fp-desc {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--texto-claro);
+  }
+
+  .fp-local {
+    font-size: 12px;
+    color: #999;
+  }
+
+  /* ── BUSCA PRINCIPAL (HOME) ────────────────────────── */
+  .search-hero {
+    background: linear-gradient(135deg, #0D47A1 0%, #1565C0 100%);
+    border-radius: 16px;
+    padding: 40px 24px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 32px;
+    box-shadow: 0 12px 32px rgba(13, 71, 161, 0.2);
+  }
+
+  .search-hero h1 {
+    color: #fff;
+    margin-bottom: 8px;
+    font-size: 32px;
+  }
+
+  .search-hero p {
+    color: rgba(255,255,255,0.95);
+    margin-bottom: 24px;
+    font-size: 15px;
+  }
+
+  .search-hero input {
+    width: 100%;
+    max-width: 500px;
+    padding: 14px 18px;
+    border: none;
+    border-radius: 28px;
+    font-size: 15px;
+    background: rgba(255,255,255,0.95);
+    color: #1a1a1a;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  .search-hero input::placeholder {
+    color: #999;
+  }
+
+  .search-hero input:focus {
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+    background: #fff;
+  }
+
+  /* ── RESPONSIVO ────────────────────────────────────── */
+  @media (max-width: 1000px) {
+    .calendario-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .calendario-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .header-inner {
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .marca {
+      flex-direction: column;
+      gap: 6px;
+      padding: 4px 20px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .marca img {
+      height: 130px;
+    }
+
+    .marca h1 {
+      font-size: 18px;
+    }
+
+    .marca p {
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .controles {
+      width: 100%;
+      gap: 10px;
+      flex-direction: column;
+    }
+
+    .controles select,
+    .search-container {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .search-container input {
+      font-size: 14px;
+    }
+
+    main {
+      padding: 24px 16px;
+    }
+
+    .card {
+      padding: 18px;
+      border-radius: 14px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .search-hero {
+      padding: 32px 20px;
+      margin-bottom: 28px;
+    }
+
+    .search-hero h1 {
+      font-size: 26px;
+      margin-bottom: 12px;
+    }
+
+    .search-hero p {
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+
+    .search-hero input {
+      max-width: 100%;
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+
+    h1 {
+      font-size: 22px;
+    }
+
+    h2 {
+      font-size: 16px;
+    }
+
+    .dia {
+      font-size: 11px;
+    }
   }
 
   @media (max-width: 480px) {
-    #chat-widget {
-      width: 100%;
-      height: 100%;
-      bottom: 0;
-      right: 0;
-      border-radius: 0;
-      max-height: none;
+    .marca {
+      padding: 4px 14px;
+      max-width: 100%;
     }
 
-    #chat-widget.minimizado {
-      width: 60px;
-      height: 60px;
-      bottom: 20px;
-      right: 20px;
-      border-radius: 50%;
+    .marca img {
+      height: 110px;
     }
 
-    .chat-bubble {
-      max-width: 90%;
+    .marca p {
+      font-size: 13px;
+    }
+
+    .grid {
+      grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+      gap: 8px;
+    }
+
+    .search-hero {
+      padding: 24px 16px;
+      margin-bottom: 20px;
+    }
+
+    .search-hero h1 {
+      font-size: 22px;
+    }
+
+    .search-hero p {
+      font-size: 13px;
+    }
+
+    main {
+      padding: 16px 12px;
+    }
+
+    .card {
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .dia {
+      font-size: 10px;
+      border-radius: 6px;
+    }
+
+    h1 {
+      font-size: 20px;
+    }
+
+    h2 {
+      font-size: 14px;
+      margin-bottom: 12px;
     }
   }
 
-  /* ── TURISMO: página de detalhe do negócio ────────────– */
+  /* ── FERRAMENTAS EM DESTAQUE (calculadora de férias / dólar) ── */
+  .ferramentas-destaque {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .card-ferramenta {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: var(--card);
+    border: 1px solid var(--cinza-borda);
+    border-radius: 14px;
+    padding: 20px 22px;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .card-ferramenta:hover {
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.10);
+    transform: translateY(-2px);
+  }
+
+  .cf-icone {
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cf-icone svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .card-ferramenta--calc .cf-icone {
+    background: #ecfdf5;
+    color: #0f766e;
+  }
+
+  .card-ferramenta--calc:hover {
+    border-color: #99e6d9;
+  }
+
+  .card-ferramenta--dolar .cf-icone {
+    background: #fdf6e3;
+    color: #92400e;
+  }
+
+  .card-ferramenta--dolar:hover {
+    border-color: #e6cf9c;
+  }
+
+  .cf-corpo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .cf-titulo {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--texto);
+    letter-spacing: -0.2px;
+  }
+
+  .cf-desc {
+    font-size: 13px;
+    color: var(--texto-claro);
+    line-height: 1.5;
+  }
+
+  .cf-cta {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .card-ferramenta--calc .cf-cta {
+    color: #0f766e;
+  }
+
+  .card-ferramenta--dolar .cf-cta {
+    color: #92400e;
+  }
+
+  @media (max-width: 600px) {
+    .card-ferramenta {
+      padding: 16px 18px;
+    }
+
+    .cf-icone {
+      width: 40px;
+      height: 40px;
+    }
+
+    .cf-icone svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .cf-titulo {
+      font-size: 15px;
+    }
+  }
+
+  /* ── TURISMO: link no header ─────────────────────────── */
+  .link-turismo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.35);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+  }
+
+  .link-turismo:hover {
+    background: rgba(255,255,255,.25);
+  }
+
+  /* ── TURISMO: breadcrumb ──────────────────────────────── */
+  .turismo-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--texto-claro);
+    margin-bottom: 16px;
+  }
+
+  .turismo-breadcrumb a {
+    color: var(--azul-escuro);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .turismo-breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  /* ── TURISMO: banner da seção ─────────────────────────── */
+  .turismo-hero {
+    background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%);
+    border-radius: 16px;
+    padding: 40px 24px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 24px;
+    box-shadow: 0 12px 32px rgba(15, 118, 110, 0.25);
+  }
+
+  .turismo-hero h1 {
+    color: #fff;
+    margin-bottom: 8px;
+    font-size: 30px;
+  }
+
+  .turismo-hero p {
+    color: rgba(255,255,255,0.95);
+    margin: 0 auto;
+    max-width: 640px;
+    font-size: 15px;
+  }
+
+  /* ── TURISMO: grid de categorias ──────────────────────── */
+  .grid-categorias {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
+
+  .categoria-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    background: linear-gradient(135deg, #ccfbf1, #99f6e4);
+    padding: 18px 12px;
+    border-radius: 14px;
+    text-decoration: none;
+    color: #0f766e;
+    font-weight: 700;
+    font-size: 13px;
+    box-shadow: 0 2px 8px rgba(15, 118, 110, 0.1);
+    border: 1px solid rgba(15, 118, 110, 0.15);
+    transition: all 0.3s ease;
+  }
+
+  .categoria-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(15, 118, 110, 0.2);
+  }
+
+  .categoria-item.ativa {
+    background: linear-gradient(135deg, #0F766E, #0D9488);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  .categoria-item img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+  }
+
+  /* ── TURISMO: painel de filtro por categoria (chips) ──── */
+  .filtro-turismo {
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  .filtro-turismo-botao {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--cinza-borda);
+    border-radius: 24px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--texto);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  }
+
+  .filtro-turismo-botao:hover {
+    border-color: #99f6e4;
+  }
+
+  .filtro-turismo-painel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 50;
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+    border: 1px solid var(--cinza-borda);
+    padding: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: min(520px, 90vw);
+  }
+
+  .filtro-turismo-painel.hidden {
+    display: none;
+  }
+
+  .chip-categoria {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0fdfa;
+    border: 1px solid #99f6e4;
+    color: #0f766e;
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+
+  .chip-categoria:hover {
+    background: #0f766e;
+    color: #fff;
+  }
+
+  .chip-categoria.ativa {
+    background: #0f766e;
+    color: #fff;
+    border-color: #0f766e;
+  }
+
+  .chip-categoria img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+  }
+
+  /* ── TURISMO: toggle "Ver como" + botão geolocalização ── */
+  .turismo-controles-secao {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .turismo-controles-direita {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .toggle-visualizacao {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--texto-claro);
+  }
+
+  .toggle-visualizacao-botoes {
+    display: inline-flex;
+    background: #f0fdfa;
+    border-radius: 20px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .toggle-visualizacao-botoes button {
+    border: 0;
+    background: transparent;
+    padding: 7px 12px;
+    border-radius: 18px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    color: #0f766e;
+    transition: all 0.2s ease;
+  }
+
+  .toggle-visualizacao-botoes button.ativo {
+    background: #0f766e;
+    color: #fff;
+  }
+
+  .botao-geolocalizacao {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0fdfa;
+    border: 1px solid #99f6e4;
+    color: #0f766e;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .botao-geolocalizacao:hover {
+    background: #0f766e;
+    color: #fff;
+  }
+
+  .botao-geolocalizacao[disabled] {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  /* ── TURISMO: card de negócio ──────────────────────────── */
+  .turismo-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border-radius: 14px;
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--texto);
+    border: 1px solid rgba(15, 118, 110, 0.12);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .turismo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(15, 118, 110, 0.18);
+  }
+
+  .tc-foto {
+    height: 140px;
+    background-size: cover;
+    background-position: center;
+    background-color: #ccfbf1;
+  }
+
+  .tc-corpo {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .tc-categoria {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #0f766e;
+  }
+
+  .tc-categoria img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+  }
+
+  .tc-nome {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--texto);
+  }
+
+  .tc-local {
+    margin: 0;
+    font-size: 12px;
+    color: var(--texto-claro);
+  }
+
+  .tc-distancia {
+    align-self: flex-start;
+    margin-top: 4px;
+    background: #f0fdfa;
+    color: #0f766e;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+
+  /* ── TURISMO: carrossel ───────────────────────────────── */
+  .turismo-carrossel {
+    position: relative;
+  }
+
+  .turismo-carrossel-viewport {
+    overflow: hidden;
+  }
+
+  .turismo-carrossel-track {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding-bottom: 4px;
+  }
+
+  .turismo-carrossel-track::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .turismo-carrossel-track::-webkit-scrollbar-thumb {
+    background: var(--azul-bebe);
+    border-radius: 4px;
+  }
+
+  .turismo-carrossel .turismo-card {
+    scroll-snap-align: start;
+    width: 240px;
+  }
+
+  .turismo-carrossel-seta {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 1px solid var(--cinza-borda);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--texto);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .turismo-carrossel-seta:hover {
+    background: #f0fdfa;
+  }
+
+  .turismo-carrossel-seta--prev {
+    left: -6px;
+  }
+
+  .turismo-carrossel-seta--next {
+    right: -6px;
+  }
+
+  .turismo-carrossel-progresso {
+    height: 4px;
+    background: var(--azul-claro);
+    border-radius: 2px;
+    margin-top: 12px;
+    overflow: hidden;
+  }
+
+  .turismo-carrossel-progresso-barra {
+    height: 100%;
+    width: 20%;
+    background: #0f766e;
+    border-radius: 2px;
+    transition: transform 0.2s ease, width 0.2s ease;
+  }
+
+  /* ── TURISMO: grid estático de negócios ───────────────── */
+  .grid-turismo {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .turismo-secao-vazia {
+    text-align: center;
+    padding: 32px 20px;
+    color: #999;
+    font-size: 14px;
+  }
+
+  /* ── TURISMO: paginação ────────────────────────────────── */
+  .paginacao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .paginacao a,
+  .paginacao span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--texto);
+    border: 1px solid var(--cinza-borda);
+  }
+
+  .paginacao a:hover {
+    background: #f0fdfa;
+    border-color: #99f6e4;
+  }
+
+  .paginacao .pagina-atual {
+    background: #0f766e;
+    color: #fff;
+    border-color: #0f766e;
+  }
+
+  .paginacao .reticencias {
+    border: none;
+  }
+
+  /* ── TURISMO: página de detalhe do negócio ────────────── */
   .negocio-cabecalho {
     display: grid;
     grid-template-columns: 260px 1fr;
@@ -672,28 +1590,242 @@
     }
   }
 
-  .feriado-popover-panel {
+  /* ── CHAT WIDGET ────────────────────────────────────────── */
+  #chat-widget {
     position: fixed;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    padding: 20px;
-    z-index: 10000;
-    max-width: 400px;
+    bottom: 20px;
+    right: 20px;
+    width: 380px;
+    max-height: 600px;
+    border-radius: 16px;
+    box-shadow: var(--sombra);
+    background: var(--card);
+    border: 1px solid rgba(13, 71, 161, 0.08);
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    font-family: inherit;
+    transition: all 0.3s ease;
   }
 
-  .fp-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 24px;
+  #chat-widget.minimizado {
+    width: 60px;
+    height: 60px;
+    max-height: none;
+  }
+
+  #chat-header {
+    background: linear-gradient(90deg, var(--azul-medio) 0%, var(--azul-escuro) 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 18px;
+    border-radius: 16px 16px 0 0;
     cursor: pointer;
   }
 
-  .fp-content {
-    margin-top: 10px;
+  #chat-widget.minimizado #chat-header {
+    border-radius: 50%;
+    padding: 0;
+    width: 60px;
+    height: 60px;
+    justify-content: center;
+  }
+
+  #chat-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  #chat-widget.minimizado #chat-header h3 {
+    display: none;
+  }
+
+  #chat-minimize-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 0;
+    line-height: 1;
+    margin-left: auto;
+  }
+
+  #chat-widget.minimizado #chat-minimize-btn {
+    margin: 0;
+    font-size: 24px;
+  }
+
+  #chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--fundo-claro);
+  }
+
+  #chat-widget.minimizado #chat-messages {
+    display: none;
+  }
+
+  .chat-message {
+    display: flex;
+    gap: 8px;
+    animation: chatSlideIn 0.3s ease;
+  }
+
+  .chat-message.user {
+    justify-content: flex-end;
+  }
+
+  .chat-message.bot {
+    justify-content: flex-start;
+  }
+
+  .chat-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word;
+  }
+
+  .chat-message.user .chat-bubble {
+    background: var(--azul-medio);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+
+  .chat-message.bot .chat-bubble {
+    background: #fff;
+    color: var(--texto);
+    border: 1px solid var(--cinza-borda);
+    border-bottom-left-radius: 4px;
+  }
+
+  .chat-typing {
+    display: flex;
+    gap: 4px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 14px;
+    border-bottom-left-radius: 4px;
+  }
+
+  .chat-typing span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--azul-medio);
+    animation: chatBounce 1.4s infinite;
+  }
+
+  .chat-typing span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .chat-typing span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes chatBounce {
+    0%, 80%, 100% {
+      opacity: 0.5;
+      transform: translateY(0);
+    }
+    40% {
+      opacity: 1;
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes chatSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  #chat-input-area {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--cinza-borda);
+    background: var(--card);
+    border-radius: 0 0 16px 16px;
+  }
+
+  #chat-widget.minimizado #chat-input-area {
+    display: none;
+  }
+
+  #chat-input {
+    flex: 1;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 20px;
+    padding: 9px 16px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+    font-family: inherit;
+  }
+
+  #chat-input:focus {
+    border-color: var(--azul-medio);
+  }
+
+  #chat-send {
+    background: var(--azul-medio);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.2s ease;
+  }
+
+  #chat-send:hover {
+    background: var(--azul-escuro);
+  }
+
+  #chat-send:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 480px) {
+    #chat-widget {
+      width: calc(100vw - 24px);
+      right: 12px;
+      bottom: 12px;
+      max-height: 70vh;
+    }
+
+    #chat-widget.minimizado {
+      width: 56px;
+      height: 56px;
+      right: 16px;
+      bottom: 16px;
+    }
+
+    .chat-bubble {
+      max-width: 90%;
+    }
   }
 </style>
 </head>
@@ -702,7 +1834,7 @@
   <div class="header-inner">
     <div class="marca">
       <a href="/">
-        <img src="https://i.imgur.com/dlxIOwA.png" alt="Logo Feriados" title="Ir para início">
+        <img src="https://i.imgur.com/dlxIOwA.png" alt="Logo Feriados">
         <div>
           <h1>Feriados {{ ano }}</h1>
           <p>Feriados, pontes e emendas<span class="marca-sub">Calendário nacional, estadual e municipal</span></p>
@@ -759,10 +1891,10 @@
   </div>
   <div id="chat-messages"></div>
   <div id="chat-input-area">
-    <input 
-      type="text" 
-      id="chat-input" 
-      placeholder="Pergunte sobre feriados..." 
+    <input
+      type="text"
+      id="chat-input"
+      placeholder="Pergunte sobre feriados..."
       aria-label="Mensagem"
       autocomplete="off"
     >
@@ -772,7 +1904,6 @@
 
 <script>
 (function () {
-  // ── POPOVER DE FERIADOS ───────────────────────────────
   var popover = document.getElementById('feriado-popover');
   var content = popover.querySelector('.fp-content');
   var closeBtn = popover.querySelector('.fp-close');
@@ -900,12 +2031,14 @@
     }, 300);
   });
 
+  // Fechar dropdown quando clicar fora
   document.addEventListener('click', function(e) {
     if (!buscaRapida.contains(e.target) && !dropdown.contains(e.target)) {
       dropdown.classList.add('hidden');
     }
   });
 
+  // Fechar dropdown ao pressionar Escape
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       dropdown.classList.add('hidden');
@@ -921,62 +2054,64 @@
   var chatSend = document.getElementById('chat-send');
   var isMinimized = false;
 
-  chatMinimizeBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
+  function toggleChatMinimizado() {
     isMinimized = !isMinimized;
     chatWidget.classList.toggle('minimizado');
     chatMinimizeBtn.textContent = isMinimized ? '+' : '−';
+  }
+
+  chatMinimizeBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleChatMinimizado();
   });
 
   chatHeader.addEventListener('click', function(e) {
     if (e.target !== chatMinimizeBtn) {
-      isMinimized = !isMinimized;
-      chatWidget.classList.toggle('minimizado');
-      chatMinimizeBtn.textContent = isMinimized ? '+' : '−';
+      toggleChatMinimizado();
     }
   });
 
-  function addMessage(text, isUser) {
+  function addChatMessage(text, isUser) {
     var div = document.createElement('div');
     div.className = 'chat-message ' + (isUser ? 'user' : 'bot');
-    
+
     var bubble = document.createElement('div');
     bubble.className = 'chat-bubble';
     bubble.textContent = text;
-    
+
     div.appendChild(bubble);
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  function showTyping() {
+  function showChatTyping() {
     var div = document.createElement('div');
     div.className = 'chat-message bot';
-    div.id = 'typing-indicator';
-    
+    div.id = 'chat-typing-indicator';
+
     var typing = document.createElement('div');
     typing.className = 'chat-typing';
     typing.innerHTML = '<span></span><span></span><span></span>';
-    
+
     div.appendChild(typing);
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  function removeTyping() {
-    var typing = document.getElementById('typing-indicator');
+  function removeChatTyping() {
+    var typing = document.getElementById('chat-typing-indicator');
     if (typing) typing.remove();
   }
 
-  function sendMessage() {
+  function sendChatMessage() {
     var text = chatInput.value.trim();
     if (!text) return;
 
-    addMessage(text, true);
+    addChatMessage(text, true);
     chatInput.value = '';
     chatSend.disabled = true;
 
-    showTyping();
+    showChatTyping();
 
     fetch('/api/chat/', {
       method: 'POST',
@@ -987,31 +2122,30 @@
     })
     .then(function(res) { return res.json(); })
     .then(function(data) {
-      removeTyping();
+      removeChatTyping();
       if (data.resposta) {
-        addMessage(data.resposta, false);
+        addChatMessage(data.resposta, false);
       } else {
-        addMessage('Desculpe, não consegui entender. Tente perguntar sobre feriados ou negócios.', false);
+        addChatMessage('Desculpe, não consegui entender. Tente perguntar sobre feriados ou negócios.', false);
       }
       chatSend.disabled = false;
     })
     .catch(function(err) {
       console.error('Erro no chat:', err);
-      removeTyping();
-      addMessage('Houve um erro. Tente novamente.', false);
+      removeChatTyping();
+      addChatMessage('Houve um erro. Tente novamente.', false);
       chatSend.disabled = false;
     });
   }
 
-  chatSend.addEventListener('click', sendMessage);
+  chatSend.addEventListener('click', sendChatMessage);
   chatInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') sendMessage();
+    if (e.key === 'Enter') sendChatMessage();
   });
 
   setTimeout(function() {
-    addMessage('Olá! 👋 Tiro suas dúvidas sobre feriados, cidades e negócios!', false);
+    addChatMessage('Olá! 👋 Tiro suas dúvidas sobre feriados, cidades e negócios!', false);
   }, 500);
-
 })();
 </script>
 </body>
