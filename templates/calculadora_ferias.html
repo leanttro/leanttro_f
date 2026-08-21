@@ -62,16 +62,20 @@
     </div>
 
     <!-- Tipo de Férias -->
-    <div style="margin-bottom: 20px;">
+    <div style="margin-bottom: 20px;" id="tipo-ferias-group">
       <label style="display: block; margin-bottom: 10px; font-weight: 600;">Tipo de Férias</label>
       <div style="display: flex; gap: 12px; flex-wrap: wrap;">
         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="radio" name="tipo-ferias" value="10dias">
+          <span>10 dias</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
           <input type="radio" name="tipo-ferias" value="completas" checked>
-          <span>Completas (30 dias)</span>
+          <span>30 dias (Completas)</span>
         </label>
         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
           <input type="radio" name="tipo-ferias" value="proporcionais">
-          <span>Proporcionais</span>
+          <span>Proporcionais (calcular)</span>
         </label>
       </div>
     </div>
@@ -181,7 +185,7 @@
 
   <!-- Resumo Rápido -->
   <div style="background: var(--azul-claro); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
       <div>
         <p style="font-size: 12px; color: var(--texto-claro); margin-bottom: 4px;">BRUTO</p>
         <p style="font-size: 24px; font-weight: 700; color: var(--azul-escuro);">
@@ -193,6 +197,13 @@
         <p style="font-size: 24px; font-weight: 700; color: var(--verde);">
           <span id="resultado-liquido">R$ 0,00</span>
         </p>
+      </div>
+      <div>
+        <p style="font-size: 12px; color: var(--texto-claro); margin-bottom: 4px;">💰 VOCÊ VAI RECEBER</p>
+        <p style="font-size: 24px; font-weight: 700; color: var(--verde-escuro);">
+          <span id="resultado-valor-receber">R$ 0,00</span>
+        </p>
+        <p style="font-size: 11px; color: var(--texto-claro); margin-top: 4px;">ao voltar do período</p>
       </div>
     </div>
   </div>
@@ -440,7 +451,9 @@ document.getElementById('form-ferias').addEventListener('submit', function(e) {
   // ── Cálculos ──────────────────────────────────────────────
   // Dias de férias a que o trabalhador tem direito (antes de vender)
   let diasDireito = 30;
-  if (tipoFerias === 'proporcionais') {
+  if (tipoFerias === '10dias') {
+    diasDireito = 10;
+  } else if (tipoFerias === 'proporcionais') {
     // Cada mês trabalhado (com ≥15 dias) = 1/12 avos = 30/12 = 2,5 dias
     diasDireito = Math.floor((mesesTrabalhados * 30) / 12);
   }
@@ -486,6 +499,7 @@ document.getElementById('form-ferias').addEventListener('submit', function(e) {
   // Renderizar resultados
   document.getElementById('resultado-bruto').textContent = formatarMoeda(brutoCombinado);
   document.getElementById('resultado-liquido').textContent = formatarMoeda(liquido);
+  document.getElementById('resultado-valor-receber').textContent = formatarMoeda(liquido);
 
   // Tabela detalhada
   const tabelaHTML = `
@@ -552,7 +566,178 @@ document.getElementById('form-ferias').addEventListener('submit', function(e) {
 window.addEventListener('load', function() {
   const event = new Event('submit');
   document.getElementById('form-ferias').dispatchEvent(event);
+  
+  // Mostrar tutorial após 800ms
+  setTimeout(iniciarTutorial, 800);
 });
+
+// ════════════════════════════════════════════════════════════
+// TUTORIAL INTERATIVO COM SPOTLIGHT
+// ════════════════════════════════════════════════════════════
+
+function iniciarTutorial() {
+  const tutorialAtivo = localStorage.getItem('tutorial-ferias-visto');
+  if (tutorialAtivo) return;
+  
+  localStorage.setItem('tutorial-ferias-visto', 'true');
+  
+  const passos = [
+    {
+      elemento: '#salario-bruto',
+      titulo: '1️⃣ Seu Salário Bruto',
+      descricao: 'Comece informando seu salário mensal ANTES de descontos. Pode ser o valor que vem na holerite como base.',
+      posicao: 'abaixo'
+    },
+    {
+      elemento: '#tipo-ferias-group',
+      titulo: '2️⃣ Tipo de Férias',
+      descricao: 'Escolha entre 10 dias, 30 dias completos, ou calcule férias proporcionais (se trabalhou menos de um ano).',
+      posicao: 'abaixo'
+    },
+    {
+      elemento: 'button[type="submit"]',
+      titulo: '3️⃣ Calcular',
+      descricao: 'Clique aqui para ver quanto você vai receber em férias (bruto, descontos e líquido).',
+      posicao: 'acima'
+    },
+    {
+      elemento: '#resultado-card',
+      titulo: '4️⃣ Seu Resultado',
+      descricao: 'Aqui aparece QUANTO VOCÊ VAI RECEBER ao voltar do período de férias, após todos os descontos (INSS e IRRF).',
+      posicao: 'abaixo'
+    }
+  ];
+  
+  let passoAtual = 0;
+  
+  function mostrarPasso(indice) {
+    passoAtual = indice;
+    const passo = passos[indice];
+    const elemento = document.querySelector(passo.elemento);
+    
+    if (!elemento) {
+      encerrarTutorial();
+      return;
+    }
+    
+    const overlay = document.getElementById('tutorial-overlay') || criarOverlay();
+    const spotlight = document.getElementById('tutorial-spotlight') || criarSpotlight();
+    const popover = document.getElementById('tutorial-popover') || criarPopover();
+    
+    const rect = elemento.getBoundingClientRect();
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    
+    spotlight.style.left = (rect.left - 8) + 'px';
+    spotlight.style.top = (rect.top + scrollTop - 8) + 'px';
+    spotlight.style.width = (rect.width + 16) + 'px';
+    spotlight.style.height = (rect.height + 16) + 'px';
+    spotlight.style.display = 'block';
+    
+    let top = rect.bottom + scrollTop + 20;
+    if (passo.posicao === 'acima') {
+      top = rect.top + scrollTop - 150;
+    }
+    
+    let botoesHTML = '<div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">';
+    
+    if (indice > 0) {
+      botoesHTML += '<button class="tutorial-btn-anterior" style="padding: 8px 16px; background: #999; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">← Anterior</button>';
+    }
+    
+    if (indice < passos.length - 1) {
+      botoesHTML += '<button class="tutorial-btn-proximo" style="padding: 8px 16px; background: var(--azul-medio); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Próximo →</button>';
+    }
+    
+    botoesHTML += '<button class="tutorial-btn-fechar" style="padding: 8px 16px; background: var(--verde-escuro); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Entendi!</button></div>';
+    
+    popover.innerHTML = `
+      <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700;">${passo.titulo}</h3>
+      <p style="margin: 0 0 16px 0; font-size: 14px; color: #666; line-height: 1.5;">${passo.descricao}</p>
+      ${botoesHTML}
+    `;
+    
+    popover.style.top = top + 'px';
+    popover.style.left = '50%';
+    popover.style.transform = 'translateX(-50%)';
+    popover.style.display = 'block';
+    
+    const btnProximo = popover.querySelector('.tutorial-btn-proximo');
+    const btnAnterior = popover.querySelector('.tutorial-btn-anterior');
+    const btnFechar = popover.querySelector('.tutorial-btn-fechar');
+    
+    if (btnProximo) btnProximo.addEventListener('click', () => mostrarPasso(indice + 1));
+    if (btnAnterior) btnAnterior.addEventListener('click', () => mostrarPasso(indice - 1));
+    if (btnFechar) btnFechar.addEventListener('click', encerrarTutorial);
+    
+    overlay.style.display = 'block';
+    
+    setTimeout(() => {
+      elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+  
+  function criarOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'tutorial-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9998;
+      pointer-events: none;
+    `;
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+  
+  function criarSpotlight() {
+    const spotlight = document.createElement('div');
+    spotlight.id = 'tutorial-spotlight';
+    spotlight.style.cssText = `
+      position: fixed;
+      border: 3px solid var(--azul-medio);
+      border-radius: 8px;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    `;
+    document.body.appendChild(spotlight);
+    return spotlight;
+  }
+  
+  function criarPopover() {
+    const popover = document.createElement('div');
+    popover.id = 'tutorial-popover';
+    popover.style.cssText = `
+      position: fixed;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      z-index: 9999;
+      max-width: 340px;
+      font-family: inherit;
+    `;
+    document.body.appendChild(popover);
+    return popover;
+  }
+  
+  function encerrarTutorial() {
+    const overlay = document.getElementById('tutorial-overlay');
+    const spotlight = document.getElementById('tutorial-spotlight');
+    const popover = document.getElementById('tutorial-popover');
+    
+    if (overlay) overlay.remove();
+    if (spotlight) spotlight.remove();
+    if (popover) popover.remove();
+  }
+  
+  mostrarPasso(0);
+}
 </script>
 
 {% endblock %}
